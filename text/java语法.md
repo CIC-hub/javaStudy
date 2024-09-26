@@ -206,13 +206,88 @@
 
 ### 五、控制流程
 
+​		if/while/do while/for/switch
 
+#### 1.switch
 
+​		case类型为：char、byte、short、int的常量表达式
 
+​								枚举常量
 
+​								字符串字面量
 
+#### 2. break
 
+​		不带标签、带标签
 
+​		带标签的break可用在选择、块{}、循环（ 类似goto）
 
+​		![image-20240926144525403](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926144525403.png)
 
+​	注意：只能跳出语句块，不能跳入语句块
+
+### 六、大数
+
+#### 1.使用
+
+![image-20240926150312924](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150312924.png)
+
+![image-20240926150335056](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150335056.png)
+
+#### 2.API
+
+![image-20240926150410711](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150410711.png)
+
+![image-20240926150431479](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150431479.png)
+
+### 七、数组
+
+#### 1.声明
+
+​		int[] a = new int[100];
+
+​		int[] a = {1,2,3,4,5,};	最后一个值后面允许有逗号，方便为数组增加值。
+
+![image-20240926151234741](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926151234741.png)
+
+#### 2.访问
+
+![image-20240926151649763](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926151649763.png)
+
+​		array.length	数组中元素个数
+
+#### 3.for each循环
+
+![image-20240926153229866](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153229866.png)
+
+![image-20240926153327907](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153327907.png)
+
+#### 4.拷贝
+
+![image-20240926153908460](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153908460.png)
+
+#### 5.命令行参数
+
+![image-20240926155011879](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155011879.png)
+
+![image-20240926155020884](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155020884.png)
+
+#### 6.排序
+
+​		对数值型数组排序	Array.sort(a)
+
+![image-20240926155320822](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155320822.png)![image-20240926155329043](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155329043.png)
+
+#### 7.多维数组
+
+![image-20240926161913547](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926161913547.png)
+
+![image-20240926161923457](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926161923457.png)
+
+![image-20240926162106299](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926162106299.png)
+
+#### 8.不规则数组
+
+​		Java实际上没有多维数组，只有一维数组。多维数组被解释为“数组的数组“
+![image-20240926162453492](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926162453492.png)
 
