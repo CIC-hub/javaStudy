@@ -455,9 +455,24 @@ JVM内存模型：栈stack、堆heap、方法区method
 
 ​	包名.子包名.类名  变量  =  new  包名.子包名.类名(); 
 
-​	
+### Ⅳ.访问权限修饰符
 
+|  修饰符   | 类内部 | 同一个包 | 子类 | 任何地方 |
+| :-------: | :----: | :------: | :--: | :------: |
+|  private  |  Yes   |          |      |          |
+| （缺省）  |  Yes   |   Yes    |      |          |
+| protected |  Yes   |   Yes    | Yes  |          |
+|  public   |  Yes   |   Yes    | Yes  |   Yes    |
 
+class只能用public和default（缺省）
+
+public类可以在任意地方被访问，default类只可以被同一个包内部的类访问。
+
+一个class里只能有一个public修饰的。
+
+### Ⅴ.类的构造方法
+
+#### 1.
 
 
 
