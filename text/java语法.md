@@ -472,19 +472,143 @@ public类可以在任意地方被访问，default类只可以被同一个包内�
 
 ### Ⅴ.类的构造方法
 
-#### 1.
+new对象实际上就是调用类的构造方法
+
+```java
+public class Person{
+	public Person(){}	//默认
+    public Person(int a){}	//构造器重载
+}
+
+class Person1{
+	Person1(){}	//默认	修饰符与类的统一
+}
+
+public class Person2{	
+    public Person2(){
+        age = 1;
+		name = "zhangsan";  
+    }
+    public int age;
+	publicpublic String name;
+}
+//使用：Person2 p2 = new Person2(); 此时p2.age=1，p2.name="zhangsan"
+
+public class Person3{
+    public Person3(int a,String n){
+        age = a;
+		name = n;  
+    }
+    public int age;
+	publicpublic String name;
+}
+//使用：Person3 p3 = new Person3(1,"lisi"); 此时p3.age=1，p3.name="lisi"
+
+
+```
+
+注意：	
+
+​	Java语言中，每个类都至少有一个构造器
+​	默认构造器的修饰符与所属类的修饰符一致
+​	一旦显式定义了构造器，则系统不再提供默认构造器
+​	一个类可以创建多个重载的构造器
+​	父类的构造器不可被子类继承
+
+### Ⅵ.this关键字
+
+1.当形参与成员变量重名时，如果在方法内部需要使用成员变量，必须添加this来表明该变量时类成员
+
+2.在任意方法内，如果使用当前类的成员变量或成员方法可以在其前面添加this,增强程序的阅读性
+
+```java
+public c1ass Person7 {
+	public Person7(int age. String name){
+        this.age = age;
+        this.name = name;
+    }
+    int age;
+    String name;
+    public vo1d setName (String name){
+        this.name = name;
+    }
+    public void setName1 (String name){
+    	this.setName(name);
+    }
+    public void showInto(){
+        System.out.println("姓名:”+ this.name); 
+        System.out.println("年龄:”+ this.age);
+    }
+}
+```
+3.this可以作为一个类中，构造器相互调用的特殊格式
+
+```java
+public c1ass Person7 {
+    public Person7(){ 
+        
+    }
+     public Person7(int age){
+        this.age = age;
+    }
+	public Person7(String name){
+		this();	//等同于Person7();
+        this.name = name;
+    }
+    public Person7(int age,String name){
+        this(1);	//等同于Person7(1);
+        this.age = age;
+        this.name = name;
+    }
+    int age;
+    String name;
+}
+```
+
+注意：
+
+​	1.使用this()必须放在构造器的首行!
+​	2.使用this调用本类中其他的构造器，保证至少有一个构造器是不用this的。（实际上就是不能出现构造器自己调用自己）
+
+```java
+public c1ass Person7 {
+    public Person7(){
+    	this();	//错
+或者     this("name");	//错，变相的调用自己
+    }
+     public Person7(int age){
+        this.age = age;
+    }
+    public Person7(String name){
+        this();	//等同于Person7();
+        this.name = name;
+    }
+    public Person7(int age,String name){
+        this(1);	//等同于Person7(1);
+        this.age = age;
+        this.name = name;
+    }
+    int age;
+    String name;
+}
+```
+###  Ⅶ.JavaBean
+
+●JavaBean是一种Java语言写成的可重用组件。
+●所谓javaBean，是指符合如下标准的Java类:
+➢类是公共的
+➢有一个无参的公共的构造器
+➢有属性，属性- -般是私有的，且有对应的get、set方法
+●用户可以使用JavaBean将功能、处理、值、数据库访问和其他任何可以用java代
+码创造的对象进行打包，并且其他的开发者可以通过内部的JSP页面、Servlet、 其
+他JavaBean、applet程序或 者应用来使用这些对象。用户可以认为JavaBean提供了一
+种随时随地的复制和粘贴的功能，而不用关心任何改变。
 
 
 
+使用方法：
 
-
-
-
-
-
-
-
-
+​	类里变量为private，写完后，选中右键->Source->Generate Getters and Setters...，生成set和get方法。
 
 
 
