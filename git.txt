@@ -1,0 +1,2 @@
+cd D:/StudySoftware/Eclipse/workspace/java
+git config --global --unset http.proxy
