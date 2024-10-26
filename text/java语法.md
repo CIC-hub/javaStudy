@@ -4,9 +4,9 @@
 
 #### 1.char
 
- \u0000到\uFFFF	![image-20240923145012808](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923145012808.png)
+ \u0000到\uFFFF	![image-20240923145012808]( assets\image-20240923145012808.png)
 
-![image-20240923144936274](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923144936274.png)
+![image-20240923144936274]( assets\image-20240923144936274.png)
 
 #### 2.boolean布尔
 
@@ -28,11 +28,11 @@
 
 而且，如果一个常量被声明为public, 那么其他类的方法也可以使用这个常量。
 
-![image-20240923151321046](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923151321046.png)
+![image-20240923151321046]( assets\image-20240923151321046.png)
 
-#### 5.枚举类型![image-20240923151444383](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923151444383.png)
+#### 5.枚举类型![image-20240923151444383]( assets\image-20240923151444383.png)
 
-![image-20240923151512091](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923151512091.png)
+![image-20240923151512091]( assets\image-20240923151512091.png)
 
 ### Ⅱ. 运算符
 
@@ -44,23 +44,23 @@
 
 ​							Math.sin/cos/tan/atan/atan2/exp/log/log10/PI/E
 
-![image-20240923152133948](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923152133948.png)
+![image-20240923152133948]( assets\image-20240923152133948.png)
 
 #### 3.类型转换
 
- 四舍五入：(int)Math.round(x)	返回long类型，故转换	![image-20240923152455009](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923152455009.png)
+ 四舍五入：(int)Math.round(x)	返回long类型，故转换	![image-20240923152455009]( assets\image-20240923152455009.png)
 
 #### 4.三元操作符
 
 ​	如果条件为true，表达式为第一个表达式的值， 否则为第二个表达式的值。
 
-   ![image-20240923152653588](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923152653588.png)
+   ![image-20240923152653588]( assets\image-20240923152653588.png)
 
 #### 5.位运算符
 
 ​	&	|	^(xor)	~(not)	移位：>>，<<，>>>(用0填充高位)
 
-![image-20240923153920124](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923153920124.png)
+![image-20240923153920124]( assets\image-20240923153920124.png)
 
 ### Ⅲ. 字符串
 
@@ -70,23 +70,23 @@
 
 #####			（2）String.format
 
-![image-20240924212154143](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924212154143.png)
+![image-20240924212154143]( assets\image-20240924212154143.png)
 
 #### 2.子串
 
 ​	s2 = s1.substring(a,b)	//从a开始截，长度b
 
-![image-20240923154354133](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240923154354133.png)
+![image-20240923154354133]( assets\image-20240923154354133.png)
 
 #### 3.拼接
 
 #####			（1）两个：+
 
-##### 	（2）多个：静态join方法![image-20240924160131640](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924160131640.png)
+##### 	（2）多个：静态join方法![image-20240924160131640]( assets\image-20240924160131640.png)
 
 #####  	（3）repeat
 
-#####  			![image-20240924160210648](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924160210648.png)
+#####  			![image-20240924160210648]( assets\image-20240924160210648.png)
 
 #### 4.不可变
 
@@ -104,7 +104,7 @@
 
 ​	不区分大小写：	s.equalsIgnoreCase(t)
 
-​	注意：不能用==![image-20240924161343605](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924161343605.png)
+​	注意：不能用==![image-20240924161343605]( assets\image-20240924161343605.png)
 
 #### 6.空串和Null串
 
@@ -114,25 +114,25 @@
 
 #### 7.码点与代码单元
 
-![image-20240924162753286](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924162753286.png)	
+![image-20240924162753286]( assets\image-20240924162753286.png)	
 
-![image-20240924162950922](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924162950922.png)
+![image-20240924162950922]( assets\image-20240924162950922.png)
 
 #### 8.String API
 
-![image-20240924163054811](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924163054811.png)
+![image-20240924163054811]( assets\image-20240924163054811.png)
 
-![image-20240924163124616](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924163124616.png)		![image-20240924163249269](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924163249269.png)
+![image-20240924163124616]( assets\image-20240924163124616.png)		![image-20240924163249269]( assets\image-20240924163249269.png)
 
 #### 9.构建字符串
 
-​	![image-20240924164033379](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924164033379.png)
+​	![image-20240924164033379]( assets\image-20240924164033379.png)
 
 ​	好处：多个短字符串构建时，无需构建一个新String对象，节约时间、空间。
 
-![image-20240924164212487](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924164212487.png)
+![image-20240924164212487]( assets\image-20240924164212487.png)
 
-![image-20240924164219536](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924164219536.png)
+![image-20240924164219536]( assets\image-20240924164219536.png)
 
 ### Ⅳ. 输入输出
 
@@ -172,17 +172,17 @@
 
 ##### （5）API
 
-![image-20240924211615151](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924211615151.png)
+![image-20240924211615151]( assets\image-20240924211615151.png)
 
-![image-20240924211634858](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924211634858.png)
+![image-20240924211634858]( assets\image-20240924211634858.png)
 
 #### 2.格式化输出
 
 ##### （1）System.out.print(x);
 
-##### （2）System.out.printf();![image-20240924212011784](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924212011784.png)
+##### （2）System.out.printf();![image-20240924212011784]( assets\image-20240924212011784.png)
 
-![image-20240924212101359](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924212101359.png)
+![image-20240924212101359]( assets\image-20240924212101359.png)
 
 #### 3.文件输入与输出
 
@@ -196,15 +196,15 @@
 
 ​		PrintWriter out = new PrintWriter("myfile.txt",StandardCharsets.UTF_8);
 
-​		如果文件不存在，创建该文件。可以像输出到System.out--样使用print、println以		及printf命令。![image-20240924214118214](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924214118214.png)
+​		如果文件不存在，创建该文件。可以像输出到System.out--样使用print、println以		及printf命令。![image-20240924214118214]( assets\image-20240924214118214.png)
 
-##### （3）位置![image-20240924214055028](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924214055028.png)
+##### （3）位置![image-20240924214055028]( assets\image-20240924214055028.png)
 
-![image-20240924214108451](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924214108451.png)
+![image-20240924214108451]( assets\image-20240924214108451.png)
 
 ##### （4）API
 
-![image-20240924214155875](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240924214155875.png)
+![image-20240924214155875]( assets\image-20240924214155875.png)
 
 ### Ⅴ. 控制流程
 
@@ -224,7 +224,7 @@
 
 ​		带标签的break可用在选择、块{}、循环（ 类似goto）
 
-​		![image-20240926144525403](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926144525403.png)
+​		![image-20240926144525403]( assets\image-20240926144525403.png)
 
 ​	注意：只能跳出语句块，不能跳入语句块
 
@@ -232,15 +232,15 @@
 
 #### 1.使用
 
-![image-20240926150312924](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150312924.png)
+![image-20240926150312924]( assets\image-20240926150312924.png)
 
-![image-20240926150335056](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150335056.png)
+![image-20240926150335056]( assets\image-20240926150335056.png)
 
 #### 2.API
 
-![image-20240926150410711](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150410711.png)
+![image-20240926150410711]( assets\image-20240926150410711.png)
 
-![image-20240926150431479](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926150431479.png)
+![image-20240926150431479]( assets\image-20240926150431479.png)
 
 ### Ⅶ. 数组
 
@@ -250,48 +250,48 @@
 
 ​		int[] a = {1,2,3,4,5,};	最后一个值后面允许有逗号，方便为数组增加值。
 
-![image-20240926151234741](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926151234741.png)
+![image-20240926151234741]( assets\image-20240926151234741.png)
 
 #### 2.访问
 
-![image-20240926151649763](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926151649763.png)
+![image-20240926151649763]( assets\image-20240926151649763.png)
 
 ​		array.length	数组中元素个数
 
 #### 3.for each循环
 
-![image-20240926153229866](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153229866.png)
+![image-20240926153229866]( assets\image-20240926153229866.png)
 
-![image-20240926153327907](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153327907.png)
+![image-20240926153327907]( assets\image-20240926153327907.png)
 
 #### 4.拷贝
 
-![image-20240926153908460](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926153908460.png)
+![image-20240926153908460]( assets\image-20240926153908460.png)
 
 #### 5.命令行参数
 
-![image-20240926155011879](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155011879.png)
+![image-20240926155011879]( assets\image-20240926155011879.png)
 
-![image-20240926155020884](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155020884.png)
+![image-20240926155020884]( assets\image-20240926155020884.png)
 
 #### 6.排序
 
 ​		对数值型数组排序	Array.sort(a)
 
-![image-20240926155320822](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155320822.png)![image-20240926155329043](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926155329043.png)
+![image-20240926155320822]( assets\image-20240926155320822.png)![image-20240926155329043]( assets\image-20240926155329043.png)
 
 #### 7.多维数组
 
-![image-20240926161913547](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926161913547.png)
+![image-20240926161913547]( assets\image-20240926161913547.png)
 
-![image-20240926161923457](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926161923457.png)
+![image-20240926161923457]( assets\image-20240926161923457.png)
 
-![image-20240926162106299](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926162106299.png)
+![image-20240926162106299]( assets\image-20240926162106299.png)
 
 #### 8.不规则数组
 
 ​		Java实际上没有多维数组，只有一维数组。多维数组被解释为“数组的数组“
-![image-20240926162453492](C:\Users\11813\AppData\Roaming\Typora\typora-user-images\image-20240926162453492.png)
+![image-20240926162453492]( assets\image-20240926162453492.png)
 
 ## 二、对象与类
 
@@ -622,11 +622,11 @@ public c1ass Person7 {
 
 ​	通过继承省略共性部分，子类只要写自己特有的代码
 
-#### （1）语法
+#### 1.语法
 
     class Subclass extends Superclass{ }
 
-#### （2）作用
+#### 2.作用
 
 ​	继承的出现提高了代码的复用性。
 ​	继承的出现让类与类之间产生了关系，提供了多态的前提。
@@ -642,7 +642,9 @@ public c1ass Person7 {
 
 ​	一个子类只能有一个父类
 
-#### （3）方法的重写override
+#### 3.方法的重写override
+
+​	Alt + /
 
 ​	子类重写父类的方法，只是重写编写方法体的代码
 
@@ -653,7 +655,7 @@ public c1ass Person7 {
 ​	重写和被重写的方法须同时为static的，或同时为非static的
 ​	子类方法抛出的异常不能大于父类被重写方法的异常
 
-#### （4）关键字super
+#### 4.关键字super
 
 作用：
 
@@ -683,5 +685,111 @@ public c1ass Person7 {
 
 在子类中，通过this或者是super调用构造器，只能使用一个，因为都要占据第一行
 
+#### 5.简单类对象的实例化过程
 
+简单类对象的实例化过程
 
+![image-20241025111330659](G:\StudySoftware\EclipseWorkspace\clone\java\text\assets\image-20241025111330659.png)
+
+子类对象的实例化过程
+
+![image-20241025111247946](G:\StudySoftware\EclipseWorkspace\clone\java\text\assets\image-20241025111247946.png)
+
+### Ⅱ.多态
+
+#### 1.方法的多态
+
+​	方法的重载(overload)和重写(overwrite)。
+
+​	重载：本类中的同名方法	相同名称方法实现不同的逻辑
+​	重写：子类对父类方法的覆盖	子类使用和父类相同的方法名，覆盖父类的逻辑。对				于父类的方法，想修改逻辑，但是有别的代码在调用父类的方法，可以考虑用				子类继承父类,重写父类的方法。
+
+#### 2.对象的多态
+
+##### （1）定义
+
+​	对象的多态性：可以直接应用在抽象类和接口上。
+
+​	Java引用变量有两个类型:编译时类型和运行时类型。编译时类型由声明该变量时使用的类型决定，运行时类型由实际赋给该变量的对象决定。
+​	若编译时类型和运行时类型不一致，就出现多态(Polymorphism)
+
+##### （2）使用
+
+​	子类的对象可以替代父类的对象使用
+
+1.一个变量只能有一种确定的数据类型
+
+2.一个引用类型变量可能指向(引用)多种不同类型的对象
+
+3.子类可看做是特殊的父类，所以父类类型的引用可以指向子类的对象：向上转型
+(upcasting)。	//把子类的对象给父类的类型的变量引用
+
+```java
+Person e = new Student(); // Person类型的变量e,指向Student类型的对象
+
+Person p = new Person();
+p =	new Student();//p先指向new Person()，后指向new Student()
+```
+4.一个引用类型变量如果声明为父类的类型，但实际引用的是子类对象，那么该变量就不能再访问子类中添加的属性和方法。
+属性是在编译时确定的，编译时为父类的类型， 没有子类的成员变量，因而编译错误。
+
+5.虚拟方法调用(virtual Method Invocation)
+
+```java
+Person e = new Student();
+e.getInfo(); // 调用student类的getinfo()方法
+//编译时类型和运行时类型
+//编译时e为Person类型，而方法的调用是在运行时确定的，所以调用的是Student类的getInfo()方法。-- -动态绑定
+```
+
+##### （3）总结
+
+1.前提
+	需要存在继承或者实现关系
+	要有覆盖操作
+
+2.成员方法
+	编译时:要查看引用变量所属的类中是否有所调用的方法。
+	运行时:调用实际对象所属的类中的重写方法。
+
+成员方法的多态性，也就是动态绑定，必须得存在于方法的重写之上。
+
+3.成员变量
+	不具备多态性，只看引用变量所属的类。
+
+4.子类继承父类
+	若子类重写了父类方法，就意味着子类里定义的方法彻底覆盖了父类里的同名方法，子类使用重写后的方法。若子类未重写父类方法，则使用父类方法。
+
+​	对于实例变量则不存在这样的现象，即使子类里定义了与父类完全相同的实例变量，这个实例变量依然不可能覆盖父类中定义的实例变量。
+
+5.方法声明的形参类型为父类类型，可以使用子类的对象作为实参调用该方法
+
+#### 3.instanceof操作符
+
+​	x instanceof A：检验x是否为类A的对象，返回值为boolean型。
+
+​	要求x所属的类与类A必须是子类和父类的关系，否则编译错误。
+
+​	如果x属于类A的子类B，x instanceof A值也为true。
+
+#### 4.Object类
+
+##### （1）说明
+
+​	Object类是所有Java类的根父类。
+​	如果在类的声明中未使用extends关键字指明其父类，则默认父类为Object类。
+
+##### （2）使用
+
+​	确定函数参数为类变量时，但不清楚为何种类时，可使用Object类型。
+
+##### （3）主要方法
+
+|              方法名               | 类型 |                    描述                     |
+| :-------------------------------: | :--: | :-----------------------------------------: |
+|          public Object()          | 构造 |                  构造方法                   |
+| public boolean equals(Object obj) | 普通 | 对象比较，指向同一个对象时为true，其余false |
+|       public int hashCode()       | 普通 |                 取得Hash码                  |
+|     public String toString()      | 普通 |     对象打印时调用，打印对象的内存地址      |
+
+​	所有类均可使用Object的方法
