@@ -754,11 +754,11 @@ public c1ass Person7 {
 
 简单类对象的实例化过程
 
-![image-20241025111330659](G:\StudySoftware\EclipseWorkspace\clone\java\text\assets\image-20241025111330659.png)
+![image-20241025111330659](assets\image-20241025111330659.png)
 
 子类对象的实例化过程
 
-![image-20241025111247946](G:\StudySoftware\EclipseWorkspace\clone\java\text\assets\image-20241025111247946.png)
+![image-20241025111247946](assets\image-20241025111247946.png)
 
 ### Ⅱ.多态
 
