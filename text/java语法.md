@@ -667,7 +667,7 @@ public c1ass Person7 {
 ●所谓javaBean，是指符合如下标准的Java类:
 ➢类是公共的
 ➢有一个无参的公共的构造器
-➢有属性，属性- -般是私有的，且有对应的get、set方法
+➢有属性，属性一般是私有的，且有对应的get、set方法
 ●用户可以使用JavaBean将功能、处理、值、数据库访问和其他任何可以用java代
 码创造的对象进行打包，并且其他的开发者可以通过内部的JSP页面、Servlet、 其
 他JavaBean、applet程序或 者应用来使用这些对象。用户可以认为JavaBean提供了一
@@ -1288,17 +1288,577 @@ class Outer {
 }
 ```
 
+### 五、Java核心类
 
+#### 5.1 枚举类
 
+##### 5.1.1 常量
 
+在Java中，我们可以通过`static final`来定义常量。例如，我们希望定义周一到周日这7个常量，可以用7个不同的`int`表示：
 
+```java
+public class Weekday {
+    public static final int SUN = 0;
+    public static final int MON = 1;
+    public static final int TUE = 2;
+    public static final int WED = 3;
+    public static final int THU = 4;
+    public static final int FRI = 5;
+    public static final int SAT = 6;
+}
+```
 
+使用常量的时候，可以这么引用：
 
+```java
+if (day == Weekday.SAT || day == Weekday.SUN) {
+    // TODO: work at home
+}
+```
 
+无论是`int`常量还是`String`常量，使用这些常量来表示一组枚举值的时候，有一个严重的问题就是，编译器无法检查每个值的合理性。例如：
 
+```java
+if (weekday == 6 || weekday == 7) {
+    if (tasks == Weekday.MON) {
+        // TODO:
+    }
+}
+```
 
+上述代码编译和运行均不会报错，但存在两个问题：
 
+- 注意到`Weekday`定义的常量范围是`0`~`6`，并不包含`7`，编译器无法检查不在枚举中的`int`值；
+- 定义的常量仍可与其他变量比较，但其用途并非是枚举星期值。
 
+##### 5.1.2 enum
 
+为了让编译器能自动检查某个值在枚举的集合内，并且，不同用途的枚举需要不同的类型来标记，不能混用，我们可以使用`enum`来定义枚举类：
 
+```java
+// enum
+public class Main {
+    public static void main(String[] args) {
+        Weekday day = Weekday.SUN;
+        if (day == Weekday.SAT || day == Weekday.SUN) {
+            System.out.println("Work at home!");
+        } else {
+            System.out.println("Work at office!");
+        }
+    }
+}
 
+enum Weekday {
+    SUN, MON, TUE, WED, THU, FRI, SAT;
+}
+```
+
+注意到定义枚举类是通过关键字`enum`实现的，我们只需依次列出枚举的常量名。
+
+和`int`定义的常量相比，使用`enum`定义枚举有如下好处：
+
+首先，`enum`常量本身带有类型信息，即`Weekday.SUN`类型是`Weekday`，编译器会自动检查出类型错误。例如，下面的语句不可能编译通过：
+
+```java
+int day = 1;
+if (day == Weekday.SUN) { // Compile error: bad operand types for binary operator '=='
+}
+```
+
+其次，不可能引用到非枚举的值，因为无法通过编译。
+
+最后，不同类型的枚举不能互相比较或者赋值，因为类型不符。例如，不能给一个`Weekday`枚举类型的变量赋值为`Color`枚举类型的值：
+
+```java
+Weekday x = Weekday.SUN; // ok!
+Weekday y = Color.RED; // Compile error: incompatible types
+```
+
+这就使得编译器可以在编译期自动检查出所有可能的潜在错误。
+
+##### 5.1.3 enum的比较
+
+使用`enum`定义的枚举类是一种引用类型。前面我们讲到，引用类型比较，要使用`equals()`方法，如果使用`==`比较，它比较的是两个引用类型的变量是否是同一个对象。因此，引用类型比较，要始终使用`equals()`方法，但`enum`类型可以例外。
+
+这是因为`enum`类型的每个常量在JVM中只有一个唯一实例，所以可以直接用`==`比较：
+
+```java
+if (day == Weekday.FRI) { // ok!
+}
+if (day.equals(Weekday.SUN)) { // ok, but more code!
+}
+```
+
+##### 5.1.4 enum类型
+
+通过`enum`定义的枚举类，和其他的`class`有什么区别？
+
+答案是没有任何区别。`enum`定义的类型就是`class`，只不过它有以下几个特点：
+
+- 定义的`enum`类型总是继承自`java.lang.Enum`，且无法被继承；
+- 只能定义出`enum`的实例，而无法通过`new`操作符创建`enum`的实例；
+- 定义的每个实例都是引用类型的唯一实例；
+- 可以将`enum`类型用于`switch`语句。
+
+例如，我们定义的`Color`枚举类：
+
+```java
+public enum Color {
+    RED, GREEN, BLUE;
+}
+```
+
+编译器编译出的`class`大概就像这样：
+
+```java
+public final class Color extends Enum { // 继承自Enum，标记为final class
+    // 每个实例均为全局唯一:
+    public static final Color RED = new Color();
+    public static final Color GREEN = new Color();
+    public static final Color BLUE = new Color();
+    // private构造方法，确保外部无法调用new操作符:
+    private Color() {}
+}
+```
+
+所以，编译后的`enum`类和普通`class`并没有任何区别。但是我们自己无法按定义普通`class`那样来定义`enum`，必须使用`enum`关键字，这是Java语法规定的。
+
+因为`enum`是一个`class`，每个枚举的值都是`class`实例，因此，这些实例有一些方法：
+
+name()
+
+返回常量名，例如：
+
+```java
+String s = Weekday.SUN.name(); // "SUN"
+```
+
+ordinal()
+
+返回定义的常量的顺序，从0开始计数，例如：
+
+```java
+int n = Weekday.MON.ordinal(); // 1
+```
+
+改变枚举常量定义的顺序就会导致`ordinal()`返回值发生变化。例如：
+
+```java
+public enum Weekday {
+    SUN, MON, TUE, WED, THU, FRI, SAT;
+}
+```
+
+和
+
+```java
+public enum Weekday {
+    MON, TUE, WED, THU, FRI, SAT, SUN;
+}
+```
+
+的`ordinal`就是不同的。如果在代码中编写了类似`if(x.ordinal()==1)`这样的语句，就要保证`enum`的枚举顺序不能变。新增的常量必须放在最后。
+
+有些童鞋会想，`Weekday`的枚举常量如果要和`int`转换，使用`ordinal()`不是非常方便？比如这样写：
+
+```java
+String task = Weekday.MON.ordinal() + "/ppt";
+saveToFile(task);
+```
+
+但是，如果不小心修改了枚举的顺序，编译器是无法检查出这种逻辑错误的。要编写健壮的代码，就不要依靠`ordinal()`的返回值。因为`enum`本身是`class`，所以我们可以定义`private`的构造方法，并且，给每个枚举常量添加字段：
+
+```java
+// enum
+public class Main {
+    public static void main(String[] args) {
+        Weekday day = Weekday.SUN;
+        if (day.dayValue == 6 || day.dayValue == 0) {
+            System.out.println("Work at home!");
+        } else {
+            System.out.println("Work at office!");
+        }
+    }
+}
+
+enum Weekday {
+    MON(1), TUE(2), WED(3), THU(4), FRI(5), SAT(6), SUN(0);
+
+    public final int dayValue;
+
+    private Weekday(int dayValue) {
+        this.dayValue = dayValue;
+    }
+}
+```
+
+这样就无需担心顺序的变化，新增枚举常量时，也需要指定一个`int`值。
+
+ 注意
+
+枚举类的字段也可以是非final类型，即可以在运行期修改，但是不推荐这样做！
+
+默认情况下，对枚举常量调用`toString()`会返回和`name()`一样的字符串。但是，`toString()`可以被覆写，而`name()`则不行。我们可以给`Weekday`添加`toString()`方法：
+
+```java
+// enum
+public class Main {
+    public static void main(String[] args) {
+        Weekday day = Weekday.SUN;
+        if (day.dayValue == 6 || day.dayValue == 0) {
+            System.out.println("Today is " + day + ". Work at home!");
+        } else {
+            System.out.println("Today is " + day + ". Work at office!");
+        }
+    }
+}
+
+enum Weekday {
+    MON(1, "星期一"), TUE(2, "星期二"), WED(3, "星期三"), THU(4, "星期四"), FRI(5, "星期五"), SAT(6, "星期六"), SUN(0, "星期日");
+
+    public final int dayValue;
+    private final String chinese;
+
+    private Weekday(int dayValue, String chinese) {
+        this.dayValue = dayValue;
+        this.chinese = chinese;
+    }
+
+    @Override
+    public String toString() {
+        return this.chinese;
+    }
+}
+```
+
+覆写`toString()`的目的是在输出时更有可读性。
+
+注意
+
+判断枚举常量的名字，要始终使用name()方法，绝不能调用toString()！
+
+switch
+
+最后，枚举类可以应用在`switch`语句中。因为枚举类天生具有类型信息和有限个枚举常量，所以比`int`、`String`类型更适合用在`switch`语句中：
+
+```java
+// switch
+public class Main {
+    public static void main(String[] args) {
+        Weekday day = Weekday.SUN;
+        switch(day) {
+        case MON:
+        case TUE:
+        case WED:
+        case THU:
+        case FRI:
+            System.out.println("Today is " + day + ". Work at office!");
+            break;
+        case SAT:
+        case SUN:
+            System.out.println("Today is " + day + ". Work at home!");
+            break;
+        default:
+            throw new RuntimeException("cannot process " + day);
+        }
+    }
+}
+
+enum Weekday {
+    MON, TUE, WED, THU, FRI, SAT, SUN;
+}
+```
+
+加上`default`语句，可以在漏写某个枚举常量时自动报错，从而及时发现错误。
+
+##### 5.1.5 小结
+
+Java使用`enum`定义枚举类型，它被编译器编译为`final class Xxx extends Enum { … }`；
+
+通过`name()`获取常量定义的字符串，注意不要使用`toString()`；
+
+通过`ordinal()`返回常量定义的顺序（无实质意义）；
+
+可以为`enum`编写构造方法、字段和方法
+
+`enum`的构造方法要声明为`private`，字段强烈建议声明为`final`；
+
+`enum`适合用在`switch`语句中。
+
+#### 5.2 字符串和编码
+
+##### 5.2.1 String
+
+在Java中，`String`是一个引用类型，它本身也是一个`class`。但是，Java编译器对`String`有特殊处理，即可以直接用`"..."`来表示一个字符串：
+
+```java
+String s1 = "Hello!";
+```
+
+实际上字符串在`String`内部是通过一个`char[]`数组表示的，因此，按下面的写法也是可以的：
+
+```java
+String s2 = new String(new char[] {'H', 'e', 'l', 'l', 'o', '!'});
+```
+
+因为`String`太常用了，所以Java提供了`"..."`这种字符串字面量表示方法。
+
+Java字符串的一个重要特点就是字符串*不可变*。这种不可变性是通过内部的`private final char[]`字段，以及没有任何修改`char[]`的方法实现的。
+
+我们来看一个例子：
+
+```java
+// String
+public class Main {
+    public static void main(String[] args) {
+        String s = "Hello";
+        System.out.println(s);
+        s = s.toUpperCase();
+        System.out.println(s);
+    }
+}
+```
+
+根据上面代码的输出，试解释字符串内容是否改变。
+
+##### 5.2.2 字符串比较
+
+当我们想要比较两个字符串是否相同时，要特别注意，我们实际上是想比较字符串的内容是否相同。必须使用`equals()`方法而不能用`==`。
+
+我们看下面的例子：
+
+```java
+// String
+public class Main {
+    public static void main(String[] args) {
+        String s1 = "hello";
+        String s2 = "hello";
+        System.out.println(s1 == s2);		//true
+        System.out.println(s1.equals(s2));	//true
+    }
+}
+```
+
+从表面上看，两个字符串用`==`和`equals()`比较都为`true`，但实际上那只是Java编译器在编译期，会自动把所有相同的字符串当作一个对象放入常量池，自然`s1`和`s2`的引用就是相同的。
+
+所以，这种`==`比较返回`true`纯属巧合。换一种写法，`==`比较就会失败：
+
+```java
+// String
+public class Main {
+    public static void main(String[] args) {
+        String s1 = "hello";
+        String s2 = "HELLO".toLowerCase();
+        System.out.println(s1 == s2);		//false
+        System.out.println(s1.equals(s2));	//true
+    }
+}
+```
+
+结论：两个字符串比较，必须总是使用`equals()`方法。
+
+要忽略大小写比较，使用`equalsIgnoreCase()`方法。
+
+`String`类还提供了多种方法来搜索子串、提取子串。常用的方法有：
+
+```java
+// 是否包含子串:
+"Hello".contains("ll"); // true
+```
+
+注意到`contains()`方法的参数是`CharSequence`而不是`String`，因为`CharSequence`是`String`实现的一个接口。
+
+搜索子串的更多的例子：
+
+```java
+"Hello".indexOf("l"); // 2
+"Hello".lastIndexOf("l"); // 3
+"Hello".startsWith("He"); // true
+"Hello".endsWith("lo"); // true
+```
+
+提取子串的例子：
+
+```java
+"Hello".substring(2); // "llo"	01234 2到末尾
+"Hello".substring(2, 4);// "ll"	01234 2到4
+```
+
+注意索引号是从`0`开始的。
+
+##### 5.2.3 去除首尾空白字符
+
+使用`trim()`方法可以移除字符串首尾空白字符。空白字符包括空格，`\t`，`\r`，`\n`：
+
+```java
+"  \tHello\r\n ".trim(); // "Hello"
+```
+
+注意：`trim()`并没有改变字符串的内容，而是返回了一个新字符串。
+
+另一个`strip()`方法也可以移除字符串首尾空白字符。它和`trim()`不同的是，类似中文的空格字符`\u3000`也会被移除：
+
+```java
+"\u3000Hello\u3000".strip(); // "Hello"
+" Hello ".stripLeading(); // "Hello "
+" Hello ".stripTrailing(); // " Hello"
+```
+
+`String`还提供了`isEmpty()`和`isBlank()`来判断字符串是否为空和空白字符串：
+
+```java
+"".isEmpty(); // true，因为字符串长度为0
+"  ".isEmpty(); // false，因为字符串长度不为0
+"  \n".isBlank(); // true，因为只包含空白字符
+" Hello ".isBlank(); // false，因为包含非空白字符
+```
+
+##### 5.2.4 替换子串
+
+要在字符串中替换子串，有两种方法。一种是根据字符或字符串替换：
+
+```java
+String s = "hello";
+s.replace('l', 'w'); // "hewwo"，所有字符'l'被替换为'w'
+s.replace("ll", "~~"); // "he~~o"，所有子串"ll"被替换为"~~"
+```
+
+另一种是通过正则表达式替换：
+
+```java
+String s = "A,,B;C ,D";
+s.replaceAll("[\\,\\;\\s]+", ","); // "A,B,C,D"
+```
+
+上面的代码通过正则表达式，把匹配的子串统一替换为`","`。关于正则表达式的用法我们会在后面详细讲解。
+
+##### 5.2.5 分割与拼接字符串
+
+要分割字符串，使用`split()`方法，并且传入的也是正则表达式：
+
+```java
+String s = "A,B,C,D";
+String[] ss = s.split("\\,"); // {"A", "B", "C", "D"}
+```
+
+拼接字符串使用静态方法`join()`，它用指定的字符串连接字符串数组：
+
+```java
+String[] arr = {"A", "B", "C"};
+String s = String.join("***", arr); // "A***B***C"
+```
+
+##### 5.2.6 格式化字符串
+
+字符串提供了`formatted()`方法和`format()`静态方法，可以传入其他参数，替换占位符，然后生成新的字符串：
+
+```java
+// String
+public class Main {
+    public static void main(String[] args) {
+        String s = "Hi %s, your score is %d!";
+        System.out.println(s.formatted("Alice", 80));
+        System.out.println(String.format("Hi %s, your score is %.2f!", "Bob", 59.5));
+    }
+}
+```
+
+有几个占位符，后面就传入几个参数。参数类型要和占位符一致。我们经常用这个方法来格式化信息。常用的占位符有：
+
+- `%s`：显示字符串；
+- `%d`：显示整数；
+- `%x`：显示十六进制整数；
+- `%f`：显示浮点数。
+
+占位符还可以带格式，例如`%.2f`表示显示两位小数。如果你不确定用啥占位符，那就始终用`%s`，因为`%s`可以显示任何数据类型。要查看完整的格式化语法，请参考[JDK文档](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html#syntax)。
+
+##### 5.2.7 类型转换
+
+要把任意基本类型或引用类型转换为字符串，可以使用静态方法`valueOf()`。这是一个重载方法，编译器会根据参数自动选择合适的方法：
+
+```java
+String.valueOf(123); // "123"
+String.valueOf(45.67); // "45.67"
+String.valueOf(true); // "true"
+String.valueOf(new Object()); // 类似java.lang.Object@636be97c
+```
+
+要把字符串转换为其他类型，就需要根据情况。例如，把字符串转换为`int`类型：
+
+```java
+int n1 = Integer.parseInt("123"); // 123
+int n2 = Integer.parseInt("ff", 16); // 按十六进制转换，255
+```
+
+把字符串转换为`boolean`类型：
+
+```java
+boolean b1 = Boolean.parseBoolean("true"); // true
+boolean b2 = Boolean.parseBoolean("FALSE"); // false
+```
+
+要特别注意，`Integer`有个`getInteger(String)`方法，它不是将字符串转换为`int`，而是把该字符串对应的系统变量转换为`Integer`：
+
+```java
+Integer.getInteger("java.version"); // 版本号，11
+```
+
+##### 5.2.8 转换为char[]
+
+`String`和`char[]`类型可以互相转换，方法是：
+
+```java
+char[] cs = "Hello".toCharArray(); // String -> char[]
+String s = new String(cs); // char[] -> String
+```
+
+如果修改了`char[]`数组，`String`并不会改变：
+
+```java
+// String <-> char[]
+public class Main {
+    public static void main(String[] args) {
+        char[] cs = "Hello".toCharArray();
+        String s = new String(cs);
+        System.out.println(s);
+        cs[0] = 'X';
+        System.out.println(s);
+    }
+}
+```
+
+这是因为通过`new String(char[])`创建新的`String`实例时，它并不会直接引用传入的`char[]`数组，而是会复制一份，所以，修改外部的`char[]`数组不会影响`String`实例内部的`char[]`数组，因为这是两个不同的数组。
+
+从`String`的不变性设计可以看出，如果传入的对象有可能改变，我们需要复制而不是直接引用。
+
+例如，下面的代码设计了一个`Score`类保存一组学生的成绩：
+
+```java
+// int[]
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        int[] scores = new int[] { 88, 77, 51, 66 };
+        Score s = new Score(scores);
+        s.printScores();
+        scores[2] = 99;
+        s.printScores();
+    }
+}
+
+class Score {
+    private int[] scores;
+    public Score(int[] scores) {
+        this.scores = scores;
+    }
+
+    public void printScores() {
+        System.out.println(Arrays.toString(scores));
+    }
+}
+```
+
+观察两次输出，由于`Score`内部直接引用了外部传入的`int[]`数组，这会造成外部代码对`int[]`数组的修改，影响到`Score`类的字段。如果外部代码不可信，这就会造成安全隐患。
+
+请修复`Score`的构造方法，使得外部代码对数组的修改不影响`Score`实例的`int[]`字段。
