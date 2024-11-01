@@ -1,2 +1,4 @@
 cd D:/StudySoftware/Eclipse/workspace/java
-git config --global --unset http.proxy
+git config --global --unset http.proxy 
+git config --global --unset https.proxy
+

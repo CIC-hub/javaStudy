@@ -1862,3 +1862,456 @@ class Score {
 观察两次输出，由于`Score`内部直接引用了外部传入的`int[]`数组，这会造成外部代码对`int[]`数组的修改，影响到`Score`类的字段。如果外部代码不可信，这就会造成安全隐患。
 
 请修复`Score`的构造方法，使得外部代码对数组的修改不影响`Score`实例的`int[]`字段。
+
+##### 5.2.9 字符编码
+
+在Java中，`char`类型实际上就是两个字节的`Unicode`编码。如果我们要手动把字符串转换成其他编码，可以这样做：
+
+```java
+byte[] b1 = "Hello".getBytes(); // 按系统默认编码转换，不推荐
+byte[] b2 = "Hello".getBytes("UTF-8"); // 按UTF-8编码转换
+byte[] b2 = "Hello".getBytes("GBK"); // 按GBK编码转换
+byte[] b3 = "Hello".getBytes(StandardCharsets.UTF_8); // 按UTF-8编码转换
+```
+
+注意：转换编码后，就不再是`char`类型，而是`byte`类型表示的数组。
+
+如果要把已知编码的`byte[]`转换为`String`，可以这样做：
+
+```java
+byte[] b = ...
+String s1 = new String(b, "GBK"); // 按GBK转换
+String s2 = new String(b, StandardCharsets.UTF_8); // 按UTF-8转换
+```
+
+始终牢记：Java的`String`和`char`在内存中总是以Unicode编码表示。
+
+##### 5.2.10 小结
+
+Java字符串`String`是不可变对象；
+
+字符串操作不改变原字符串内容，而是返回新字符串；
+
+常用的字符串操作：提取子串、查找、替换、大小写转换等；
+
+Java使用Unicode编码表示`String`和`char`；
+
+转换编码就是将`String`和`byte[]`转换，需要指定编码；
+
+转换为`byte[]`时，始终优先考虑`UTF-8`编码。
+
+#### 5.3 StringBuilder
+
+##### 5.3.1 使用
+
+Java编译器对`String`做了特殊处理，使得我们可以直接用`+`拼接字符串。
+
+考察下面的循环代码：
+
+```java
+String s = "";
+for (int i = 0; i < 1000; i++) {
+    s = s + "," + i;
+}
+```
+
+虽然可以直接拼接字符串，但是，在循环中，每次循环都会创建新的字符串对象，然后扔掉旧的字符串。这样，绝大部分字符串都是临时对象，不但浪费内存，还会影响GC效率。
+
+为了能高效拼接字符串，Java标准库提供了`StringBuilder`，它是一个可变对象，可以预分配缓冲区，这样，往`StringBuilder`中新增字符时，不会创建新的临时对象：
+
+```java
+StringBuilder sb = new StringBuilder(1024);
+for (int i = 0; i < 1000; i++) {
+    sb.append(',');
+    sb.append(i);
+}
+String s = sb.toString();
+```
+
+##### 5.3.2 链式操作
+
+```java
+// 链式操作
+public class Main {
+    public static void main(String[] args) {
+        var sb = new StringBuilder(1024);
+        sb.append("Mr ")
+          .append("Bob")
+          .append("!")
+          .insert(0, "Hello, ");
+        System.out.println(sb.toString());
+    }
+}
+```
+
+如果我们查看`StringBuilder`的源码，可以发现，进行链式操作的关键是，定义的`append()`方法会返回`this`，这样，就可以不断调用自身的其他方法。
+
+仿照`StringBuilder`，我们也可以设计支持链式操作的类。例如，一个可以不断增加的计数器：
+
+```java
+// 链式操作
+public class Main {
+    public static void main(String[] args) {
+        Adder adder = new Adder();
+        adder.add(3)
+             .add(5)
+             .inc()
+             .add(10);
+        System.out.println(adder.value());
+    }
+}
+
+class Adder {
+    private int sum = 0;
+
+    public Adder add(int n) {
+        sum += n;
+        return this;
+    }
+
+    public Adder inc() {
+        sum ++;
+        return this;
+    }
+
+    public int value() {
+        return sum;
+    }
+}
+```
+
+##### 5.3.3 注意
+
+对于普通的字符串`+`操作，并不需要我们将其改写为`StringBuilder`，因为Java编译器在编译时就自动把多个连续的`+`操作编码为`StringConcatFactory`的操作。在运行期，`StringConcatFactory`会自动把字符串连接操作优化为数组复制或者`StringBuilder`操作。
+
+你可能还听说过`StringBuffer`，这是Java早期的一个`StringBuilder`的线程安全版本，它通过同步来保证多个线程操作`StringBuffer`也是安全的，但是同步会带来执行速度的下降。
+
+`StringBuilder`和`StringBuffer`接口完全相同，现在完全没有必要使用`StringBuffer`。
+
+##### 5.3.4 小结
+
+`StringBuilder`是可变对象，用来高效拼接字符串；
+
+`StringBuilder`可以支持链式操作，实现链式操作的关键是返回实例本身；
+
+`StringBuffer`是`StringBuilder`的线程安全版本，现在很少使用。
+
+#### 5.4 StringJoiner
+
+##### 5.4.1 StringBuilder对象
+
+```java
+// 输出: Hello Bob, Alice, Grace!
+import java.util.StringJoiner;
+public class Main {
+    public static void main(String[] args) {
+        String[] names = {"Bob", "Alice", "Grace"};
+        var sj = new StringJoiner(", ", "Hello ", "!");
+        for (String name : names) {
+            sj.add(name);
+        }
+        System.out.println(sj.toString());
+    }
+}
+```
+
+##### 5.4.2 String.join()方法
+
+`String`还提供了一个静态方法`join()`，这个方法在内部使用了`StringJoiner`来拼接字符串，在不需要指定“开头”和“结尾”的时候，用`String.join()`更方便：
+
+```java
+String[] names = {"Bob", "Alice", "Grace"};
+var s = String.join(", ", names);
+```
+
+##### 5.4.3 小结
+
+用指定分隔符拼接字符串数组时，使用`StringJoiner`或者`String.join()`更方便；
+
+用`StringJoiner`拼接字符串时，还可以额外附加一个“开头”和“结尾”。
+
+### 六、日期与时间
+
+#### 6.1 Date和Calendar
+
+##### 6.1.1 标准库API
+
+我们再来看一下Java标准库提供的API。Java标准库有两套处理日期和时间的API：
+
+- 一套定义在`java.util`这个包里面，主要包括`Date`、`Calendar`和`TimeZone`这几个类；
+- 一套新的API是在Java 8引入的，定义在`java.time`这个包里面，主要包括`LocalDateTime`、`ZonedDateTime`、`ZoneId`等。
+
+为什么会有新旧两套API呢？因为历史遗留原因，旧的API存在很多问题，所以引入了新的API。
+
+那么我们能不能跳过旧的API直接用新的API呢？如果涉及到遗留代码就不行，因为很多遗留代码仍然使用旧的API，所以目前仍然需要对旧的API有一定了解，很多时候还需要在新旧两种对象之间进行转换。
+
+本节我们快速讲解旧API的常用类型和方法。
+
+##### 6.1.2 Date
+
+`java.util.Date`是用于表示一个日期和时间的对象，注意与`java.sql.Date`区分，后者用在数据库中。如果观察`Date`的源码，可以发现它实际上存储了一个`long`类型的以毫秒表示的时间戳：
+
+```java
+public class Date implements Serializable, Cloneable, Comparable<Date> {
+
+    private transient long fastTime;
+
+    ...
+}
+```
+
+我们来看Date的基本用法：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 获取当前时间:
+        Date date = new Date();
+        System.out.println(date.getYear() + 1900); // 必须加上1900
+        System.out.println(date.getMonth() + 1); // 0~11，必须加上1
+        System.out.println(date.getDate()); // 1~31，不能加1
+        // 转换为String:
+        System.out.println(date.toString());
+        // 转换为GMT时区:
+        System.out.println(date.toGMTString());
+        // 转换为本地时区:
+        System.out.println(date.toLocaleString());
+    }
+}
+```
+
+注意`getYear()`返回的年份必须加上`1900`，`getMonth()`返回的月份是`0`~`11`分别表示1~12月，所以要加1，而`getDate()`返回的日期范围是`1`~`31`，又不能加1。
+
+打印本地时区表示的日期和时间时，不同的计算机可能会有不同的结果。如果我们想要针对用户的偏好精确地控制日期和时间的格式，就可以使用`SimpleDateFormat`对一个`Date`进行转换。它用预定义的字符串表示格式化：
+
+- yyyy：年
+- MM：月
+- dd: 日
+- HH: 小时
+- mm: 分钟
+- ss: 秒
+
+我们来看如何以自定义的格式输出：
+
+```java
+import java.text.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 获取当前时间:
+        Date date = new Date();
+        var sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(sdf.format(date));
+    }
+}
+```
+
+上述代码在不同的语言环境会打印出类似`Sun Sep 15, 2019`这样的日期。可以从[JDK文档](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/SimpleDateFormat.html)查看详细的格式说明。一般来说，字母越长，输出越长。以`M`为例，假设当前月份是9月：
+
+- `M`：输出`9`
+- `MM`：输出`09`
+- `MMM`：输出`Sep`
+- `MMMM`：输出`September`
+
+`Date`对象有几个严重的问题：它不能转换时区，除了`toGMTString()`可以按`GMT+0:00`输出外，`Date`总是以当前计算机系统的默认时区为基础进行输出。此外，我们也很难对日期和时间进行加减，计算两个日期相差多少天，计算某个月第一个星期一的日期等。
+
+##### 6.1.3 Calendar
+
+`Calendar`可以用于获取并设置年、月、日、时、分、秒，它和`Date`比，主要多了一个可以做简单的日期和时间运算的功能。
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 获取当前时间:
+        Calendar c = Calendar.getInstance();
+        int y = c.get(Calendar.YEAR);
+        int m = 1 + c.get(Calendar.MONTH);
+        int d = c.get(Calendar.DAY_OF_MONTH);
+        int w = c.get(Calendar.DAY_OF_WEEK);
+        int hh = c.get(Calendar.HOUR_OF_DAY);
+        int mm = c.get(Calendar.MINUTE);
+        int ss = c.get(Calendar.SECOND);
+        int ms = c.get(Calendar.MILLISECOND);
+        System.out.println(y + "-" + m + "-" + d + " " + w + " " + hh + ":" + mm + ":" + ss + "." + ms);
+    }
+}
+```
+
+注意到`Calendar`获取年月日这些信息变成了`get(int field)`，返回的年份不必转换，返回的月份仍然要加1，返回的星期要特别注意，`1`~`7`分别表示周日，周一，……，周六。
+
+`Calendar`只有一种方式获取，即`Calendar.getInstance()`，而且一获取到就是当前时间。如果我们想给它设置成特定的一个日期和时间，就必须先清除所有字段：
+
+```java
+import java.text.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 当前时间:
+        Calendar c = Calendar.getInstance();
+        // 清除所有:
+        c.clear();
+        // 设置2019年:
+        c.set(Calendar.YEAR, 2019);
+        // 设置9月:注意8表示9月:
+        c.set(Calendar.MONTH, 8);
+        // 设置2日:
+        c.set(Calendar.DATE, 2);
+        // 设置时间:
+        c.set(Calendar.HOUR_OF_DAY, 21);
+        c.set(Calendar.MINUTE, 22);
+        c.set(Calendar.SECOND, 23);
+        System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime()));
+        // 2019-09-02 21:22:23
+    }
+}
+```
+
+利用`Calendar.getTime()`可以将一个`Calendar`对象转换成`Date`对象，然后就可以用`SimpleDateFormat`进行格式化了。
+
+##### 6.1.4 TimeZone
+
+`Calendar`和`Date`相比，它提供了时区转换的功能。时区用`TimeZone`对象表示：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        TimeZone tzDefault = TimeZone.getDefault(); // 当前时区
+        TimeZone tzGMT9 = TimeZone.getTimeZone("GMT+09:00"); // GMT+9:00时区
+        TimeZone tzNY = TimeZone.getTimeZone("America/New_York"); // 纽约时区
+        System.out.println(tzDefault.getID()); // Asia/Shanghai
+        System.out.println(tzGMT9.getID()); // GMT+09:00
+        System.out.println(tzNY.getID()); // America/New_York
+    }
+}
+```
+
+时区的唯一标识是以字符串表示的ID，我们获取指定`TimeZone`对象也是以这个ID为参数获取，`GMT+09:00`、`Asia/Shanghai`都是有效的时区ID。要列出系统支持的所有ID，请使用`TimeZone.getAvailableIDs()`。
+
+有了时区，我们就可以对指定时间进行转换。例如，下面的例子演示了如何将北京时间`2019-11-20 8:15:00`转换为纽约时间：
+
+```java
+import java.text.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 当前时间:
+        Calendar c = Calendar.getInstance();
+        // 清除所有:
+        c.clear();
+        // 设置为北京时区:
+        c.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
+        // 设置年月日时分秒:
+        c.set(2019, 10 /* 11月 */, 20, 8, 15, 0);
+        // 显示时间:
+        var sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+        System.out.println(sdf.format(c.getTime()));
+        // 2019-11-19 19:15:00
+    }
+}
+```
+
+可见，利用`Calendar`进行时区转换的步骤是：
+
+1. 清除所有字段；
+2. 设定指定时区；
+3. 设定日期和时间；
+4. 创建`SimpleDateFormat`并设定目标时区；
+5. 格式化获取的`Date`对象（注意`Date`对象无时区信息，时区信息存储在`SimpleDateFormat`中）。
+
+因此，本质上时区转换只能通过`SimpleDateFormat`在显示的时候完成。
+
+`Calendar`也可以对日期和时间进行简单的加减：
+
+```java
+import java.text.*;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // 当前时间:
+        Calendar c = Calendar.getInstance();
+        // 清除所有:
+        c.clear();
+        // 设置年月日时分秒:
+        c.set(2019, 10 /* 11月 */, 20, 8, 15, 0);
+        // 加5天并减去2小时:
+        c.add(Calendar.DAY_OF_MONTH, 5);
+        c.add(Calendar.HOUR_OF_DAY, -2);
+        // 显示时间:
+        var sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date d = c.getTime();
+        System.out.println(sdf.format(d));
+        // 2019-11-25 6:15:00
+    }
+}
+```
+
+##### 6.1.5 小结
+
+计算机表示的时间是以整数表示的时间戳存储的，即Epoch Time，Java使用`long`型来表示以毫秒为单位的时间戳，通过`System.currentTimeMillis()`获取当前时间戳。
+
+Java有两套日期和时间的API：
+
+- 旧的Date、Calendar和TimeZone；
+- 新的LocalDateTime、ZonedDateTime、ZoneId等。
+
+分别位于`java.util`和`java.time`包中。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
