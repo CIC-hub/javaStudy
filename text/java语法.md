@@ -3517,3 +3517,578 @@ public class Main {
 最常用的一种`Map`实现是`HashMap`。
 
 #### 7.5 编写hashCode方法
+
+##### 7.5.1 使用
+
+我们知道Map是一种键-值（key-value）映射表，可以通过key快速查找对应的value。
+
+以`HashMap`为例，观察下面的代码：
+
+```java
+Map<String, Person> map = new HashMap<>();
+map.put("a", new Person("Xiao Ming"));
+map.put("b", new Person("Xiao Hong"));
+map.put("c", new Person("Xiao Jun"));
+
+map.get("a"); // Person("Xiao Ming")
+map.get("x"); // null
+```
+
+`HashMap`之所以能根据`key`直接拿到`value`，原因是它内部通过空间换时间的方法，用一个大数组存储所有`value`，并根据key直接计算出`value`应该存储在哪个索引：
+
+```
+  ┌───┐
+0 │   │
+  ├───┤
+1 │ ●─┼───▶ Person("Xiao Ming")
+  ├───┤
+2 │   │
+  ├───┤
+3 │   │
+  ├───┤
+4 │   │
+  ├───┤
+5 │ ●─┼───▶ Person("Xiao Hong")
+  ├───┤
+6 │ ●─┼───▶ Person("Xiao Jun")
+  ├───┤
+7 │   │
+  └───┘
+```
+
+如果`key`的值为`"a"`，计算得到的索引总是`1`，因此返回`value`为`Person("Xiao Ming")`，如果`key`的值为`"b"`，计算得到的索引总是`5`，因此返回`value`为`Person("Xiao Hong")`，这样，就不必遍历整个数组，即可直接读取`key`对应的`value`。
+
+当我们使用`key`存取`value`的时候，就会引出一个问题：
+
+我们放入`Map`的`key`是字符串`"a"`，但是，当我们获取`Map`的`value`时，传入的变量不一定就是放入的那个`key`对象。
+
+换句话讲，两个`key`应该是内容相同，但不一定是同一个对象。测试代码如下：
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+
+public class Main {
+    public static void main(String[] args) {
+        String key1 = "a";
+        Map<String, Integer> map = new HashMap<>();
+        map.put(key1, 123);
+
+        String key2 = new String("a");
+        map.get(key2); // 123
+
+        System.out.println(key1 == key2); // false
+        System.out.println(key1.equals(key2)); // true
+    }
+}
+```
+
+因为在`Map`的内部，对`key`做比较是通过`equals()`实现的，这一点和`List`查找元素需要正确覆写`equals()`是一样的，即正确使用`Map`必须保证：作为`key`的对象必须正确覆写`equals()`方法。
+
+我们经常使用`String`作为`key`，因为`String`已经正确覆写了`equals()`方法。但如果我们放入的`key`是一个自己写的类，就必须保证正确覆写了`equals()`方法。
+
+我们再思考一下`HashMap`为什么能通过`key`直接计算出`value`存储的索引。相同的`key`对象（使用`equals()`判断时返回`true`）必须要计算出相同的索引，否则，相同的`key`每次取出的`value`就不一定对。
+
+通过`key`计算索引的方式就是调用`key`对象的`hashCode()`方法，它返回一个`int`整数。`HashMap`正是通过这个方法直接定位`key`对应的`value`的索引，继而直接返回`value`。
+
+因此，正确使用`Map`必须保证：
+
+1. 作为`key`的对象必须正确覆写`equals()`方法，相等的两个`key`实例调用`equals()`必须返回`true`；
+2. 作为key的对象还必须正确覆写hashCode()方法，且hashCode()方法要严格遵循以下规范：
+   - 如果两个对象相等，则两个对象的`hashCode()`必须相等；
+   - 如果两个对象不相等，则两个对象的`hashCode()`尽量不要相等。
+
+即对应两个实例`a`和`b`：
+
+- 如果`a`和`b`相等，那么`a.equals(b)`一定为`true`，则`a.hashCode()`必须等于`b.hashCode()`；
+- 如果`a`和`b`不相等，那么`a.equals(b)`一定为`false`，则`a.hashCode()`和`b.hashCode()`尽量不要相等。
+
+上述第一条规范是正确性，必须保证实现，否则`HashMap`不能正常工作。
+
+而第二条如果尽量满足，则可以保证查询效率，因为不同的对象，如果返回相同的`hashCode()`，会造成`Map`内部存储冲突，使存取的效率下降。
+
+正确编写`equals()`的方法我们已经在[编写equals方法](https://liaoxuefeng.com/books/java/collection/equals/index.html)一节中讲过了，以`Person`类为例：
+
+```java
+public class Person {
+    String firstName;
+    String lastName;
+    int age;
+}
+```
+
+把需要比较的字段找出来：
+
+- firstName
+- lastName
+- age
+
+然后，引用类型使用`Objects.equals()`比较，基本类型使用`==`比较。
+
+在正确实现`equals()`的基础上，我们还需要正确实现`hashCode()`，即上述3个字段分别相同的实例，`hashCode()`返回的`int`必须相同：
+
+```java
+public class Person {
+    String firstName;
+    String lastName;
+    int age;
+
+    @Override
+    int hashCode() {
+        int h = 0;
+        h = 31 * h + firstName.hashCode();
+        h = 31 * h + lastName.hashCode();
+        h = 31 * h + age;
+        return h;
+    }
+}
+```
+
+注意到`String`类已经正确实现了`hashCode()`方法，我们在计算`Person`的`hashCode()`时，反复使用`31*h`，这样做的目的是为了尽量把不同的`Person`实例的`hashCode()`均匀分布到整个`int`范围。
+
+和实现`equals()`方法遇到的问题类似，如果`firstName`或`lastName`为`null`，上述代码工作起来就会抛`NullPointerException`。为了解决这个问题，我们在计算`hashCode()`的时候，经常借助`Objects.hash()`来计算：
+
+```java
+int hashCode() {
+    return Objects.hash(firstName, lastName, age);
+}
+```
+
+所以，编写`equals()`和`hashCode()`遵循的原则是：
+
+`equals()`用到的用于比较的每一个字段，都必须在`hashCode()`中用于计算；`equals()`中没有使用到的字段，绝不可放在`hashCode()`中计算。
+
+另外注意，对于放入`HashMap`的`value`对象，没有任何要求。
+
+##### 7.5.2 延伸阅读
+
+既然`HashMap`内部使用了数组，通过计算`key`的`hashCode()`直接定位`value`所在的索引，那么第一个问题来了：`hashCode()`返回的`int`范围高达±21亿，先不考虑负数，`HashMap`内部使用的数组得有多大？
+
+实际上`HashMap`初始化时默认的数组大小只有16，任何`key`，无论它的`hashCode()`有多大，都可以简单地通过：
+
+```java
+int index = key.hashCode() & 0xf; // 0xf = 15
+```
+
+把索引确定在0 ~ 15，即永远不会超出数组范围，上述算法只是一种最简单的实现。
+
+第二个问题：如果添加超过16个`key-value`到`HashMap`，数组不够用了怎么办？
+
+添加超过一定数量的`key-value`时，`HashMap`会在内部自动扩容，每次扩容一倍，即长度为16的数组扩展为长度32，相应地，需要重新确定`hashCode()`计算的索引位置。例如，对长度为32的数组计算`hashCode()`对应的索引，计算方式要改为：
+
+```java
+int index = key.hashCode() & 0x1f; // 0x1f = 31
+```
+
+由于扩容会导致重新分布已有的`key-value`，所以，频繁扩容对`HashMap`的性能影响很大。如果我们确定要使用一个容量为`10000`个`key-value`的`HashMap`，更好的方式是创建`HashMap`时就指定容量：
+
+```java
+Map<String, Integer> map = new HashMap<>(10000);
+```
+
+虽然指定容量是`10000`，但`HashMap`内部的数组长度总是2n，因此，实际数组长度被初始化为比`10000`大的`16384`（214）。
+
+最后一个问题：如果不同的两个`key`，例如`"a"`和`"b"`，它们的`hashCode()`恰好是相同的（这种情况是完全可能的，因为不相等的两个实例，只要求`hashCode()`尽量不相等），那么，当我们放入：
+
+```java
+map.put("a", new Person("Xiao Ming"));
+map.put("b", new Person("Xiao Hong"));
+```
+
+时，由于计算出的数组索引相同，后面放入的`"Xiao Hong"`会不会把`"Xiao Ming"`覆盖了？
+
+当然不会！使用`Map`的时候，只要`key`不相同，它们映射的`value`就互不干扰。但是，在`HashMap`内部，确实可能存在不同的`key`，映射到相同的`hashCode()`，即相同的数组索引上，肿么办？
+
+我们就假设`"a"`和`"b"`这两个`key`最终计算出的索引都是5，那么，在`HashMap`的数组中，实际存储的不是一个`Person`实例，而是一个`List`，它包含两个`Entry`，一个是`"a"`的映射，一个是`"b"`的映射：
+
+```
+  ┌───┐
+0 │   │
+  ├───┤
+1 │   │
+  ├───┤
+2 │   │
+  ├───┤
+3 │   │
+  ├───┤
+4 │   │
+  ├───┤
+5 │ ●─┼───▶ List<Entry<String, Person>>
+  ├───┤
+6 │   │
+  ├───┤
+7 │   │
+  └───┘
+```
+
+在查找的时候，例如：
+
+```java
+Person p = map.get("a");
+```
+
+`HashMap`内部通过`"a"`找到的实际上是`List<Entry<String, Person>>`，它还需要遍历这个`List`，并找到一个`Entry`，它的`key`字段是`"a"`，才能返回对应的`Person`实例。
+
+我们把不同的`key`具有相同的`hashCode()`的情况称之为哈希冲突。在冲突的时候，一种最简单的解决办法是用`List`存储`hashCode()`相同的`key-value`。显然，如果冲突的概率越大，这个`List`就越长，`Map`的`get()`方法效率就越低，这就是为什么要尽量满足条件二：
+
+ 提示
+
+如果两个对象不相等，则两个对象的hashCode()尽量不要相等。
+
+`hashCode()`方法编写得越好，`HashMap`工作的效率就越高。
+
+##### 7.5.3 小结
+
+要正确使用`HashMap`，作为`key`的类必须正确覆写`equals()`和`hashCode()`方法；
+
+一个类如果覆写了`equals()`，就必须覆写`hashCode()`，并且覆写规则是：
+
+- 如果`equals()`返回`true`，则`hashCode()`返回值必须相等；
+- 如果`equals()`返回`false`，则`hashCode()`返回值尽量不要相等。
+
+实现`hashCode()`方法可以通过`Objects.hashCode()`辅助方法实现。
+
+#### 7.6 使用EnumMap
+
+##### 7.6.1 使用
+
+因为`HashMap`是一种通过对key计算`hashCode()`，通过空间换时间的方式，直接定位到value所在的内部数组的索引，因此，查找效率非常高。
+
+如果作为key的对象是`enum`类型，那么，还可以使用Java集合库提供的一种`EnumMap`，它在内部以一个非常紧凑的数组存储value，并且根据`enum`类型的key直接定位到内部数组的索引，并不需要计算`hashCode()`，不但效率最高，而且没有额外的空间浪费。
+
+我们以`DayOfWeek`这个枚举类型为例，为它做一个“翻译”功能：
+
+```java
+import java.time.DayOfWeek;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<DayOfWeek, String> map = new EnumMap<>(DayOfWeek.class);
+        map.put(DayOfWeek.MONDAY, "星期一");
+        map.put(DayOfWeek.TUESDAY, "星期二");
+        map.put(DayOfWeek.WEDNESDAY, "星期三");
+        map.put(DayOfWeek.THURSDAY, "星期四");
+        map.put(DayOfWeek.FRIDAY, "星期五");
+        map.put(DayOfWeek.SATURDAY, "星期六");
+        map.put(DayOfWeek.SUNDAY, "星期日");
+        System.out.println(map);
+        System.out.println(map.get(DayOfWeek.MONDAY));
+    }
+}
+```
+
+使用`EnumMap`的时候，我们总是用`Map`接口来引用它，因此，实际上把`HashMap`和`EnumMap`互换，在客户端看来没有任何区别。
+##### 7.6.2 小结
+
+如果`Map`的key是`enum`类型，推荐使用`EnumMap`，既保证速度，也不浪费空间。
+
+使用`EnumMap`的时候，根据面向抽象编程的原则，应持有`Map`接口。
+
+#### 7.7 使用TreeMap
+
+##### 7.7.1 使用
+
+我们已经知道，`HashMap`是一种以空间换时间的映射表，它的实现原理决定了内部的Key是无序的，即遍历`HashMap`的Key时，其顺序是不可预测的（但每个Key都会遍历一次且仅遍历一次）。
+
+还有一种`Map`，它在内部会对Key进行排序，这种`Map`就是`SortedMap`。注意到`SortedMap`是接口，它的实现类是`TreeMap`。
+
+```
+       ┌───┐
+       │Map│
+       └───┘
+         ▲
+    ┌────┴─────┐
+    │          │
+┌───────┐ ┌─────────┐
+│HashMap│ │SortedMap│
+└───────┘ └─────────┘
+               ▲
+               │
+          ┌─────────┐
+          │ TreeMap │
+          └─────────┘
+```
+
+`SortedMap`保证遍历时以Key的顺序来进行排序。例如，放入的Key是`"apple"`、`"pear"`、`"orange"`，遍历的顺序一定是`"apple"`、`"orange"`、`"pear"`，因为`String`默认按字母排序：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<String, Integer> map = new TreeMap<>();
+        map.put("orange", 1);
+        map.put("apple", 2);
+        map.put("pear", 3);
+        for (String key : map.keySet()) {
+            System.out.println(key);
+        }
+        // apple, orange, pear
+    }
+}
+```
+
+使用`TreeMap`时，放入的Key必须实现`Comparable`接口。`String`、`Integer`这些类已经实现了`Comparable`接口，因此可以直接作为Key使用。作为Value的对象则没有任何要求。
+
+如果作为Key的class没有实现`Comparable`接口，那么，必须在创建`TreeMap`时同时指定一个自定义排序算法：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<Person, Integer> map = new TreeMap<>(new Comparator<Person>() {
+            public int compare(Person p1, Person p2) {
+                return p1.name.compareTo(p2.name);
+            }
+        });
+        map.put(new Person("Tom"), 1);
+        map.put(new Person("Bob"), 2);
+        map.put(new Person("Lily"), 3);
+        for (Person key : map.keySet()) {
+            System.out.println(key);
+        }
+        // {Person: Bob}, {Person: Lily}, {Person: Tom}
+        System.out.println(map.get(new Person("Bob"))); // 2
+    }
+}
+
+class Person {
+    public String name;
+    Person(String name) {
+        this.name = name;
+    }
+    public String toString() {
+        return "{Person: " + name + "}";
+    }
+}
+```
+
+注意到`Comparator`接口要求实现一个比较方法，它负责比较传入的两个元素`a`和`b`，如果`a<b`，则返回负数，通常是`-1`，如果`a==b`，则返回`0`，如果`a>b`，则返回正数，通常是`1`。`TreeMap`内部根据比较结果对Key进行排序。
+
+从上述代码执行结果可知，打印的Key确实是按照`Comparator`定义的顺序排序的。如果要根据Key查找Value，我们可以传入一个`new Person("Bob")`作为Key，它会返回对应的`Integer`值`2`。
+
+另外，注意到`Person`类并未覆写`equals()`和`hashCode()`，因为`TreeMap`不使用`equals()`和`hashCode()`。
+
+我们来看一个稍微复杂的例子：这次我们定义了`Student`类，并用分数`score`进行排序，高分在前：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Map<Student, Integer> map = new TreeMap<>(new Comparator<Student>() {
+            public int compare(Student p1, Student p2) {
+                return p1.score > p2.score ? -1 : 1;
+            }
+        });
+        map.put(new Student("Tom", 77), 1);
+        map.put(new Student("Bob", 66), 2);
+        map.put(new Student("Lily", 99), 3);
+        for (Student key : map.keySet()) {
+            System.out.println(key);
+        }
+        System.out.println(map.get(new Student("Bob", 66))); // null?
+    }
+}
+
+class Student {
+    public String name;
+    public int score;
+    Student(String name, int score) {
+        this.name = name;
+        this.score = score;
+    }
+    public String toString() {
+        return String.format("{%s: score=%d}", name, score);
+    }
+}
+```
+
+在`for`循环中，我们确实得到了正确的顺序。但是，且慢！根据相同的Key：`new Student("Bob", 66)`进行查找时，结果为`null`！
+
+这是怎么肥四？难道`TreeMap`有问题？遇到`TreeMap`工作不正常时，我们首先回顾Java编程基本规则：出现问题，不要怀疑Java标准库，要从自身代码找原因。
+
+在这个例子中，`TreeMap`出现问题，原因其实出在这个`Comparator`上：
+
+```java
+public int compare(Student p1, Student p2) {
+    return p1.score > p2.score ? -1 : 1;
+}
+```
+
+在`p1.score`和`p2.score`不相等的时候，它的返回值是正确的，但是，在`p1.score`和`p2.score`相等的时候，它并没有返回`0`！这就是为什么`TreeMap`工作不正常的原因：`TreeMap`在比较两个Key是否相等时，依赖Key的`compareTo()`方法或者`Comparator.compare()`方法。在两个Key相等时，必须返回`0`。因此，修改代码如下：
+
+```java
+public int compare(Student p1, Student p2) {
+    if (p1.score == p2.score) {
+        return 0;
+    }
+    return p1.score > p2.score ? -1 : 1;
+}
+```
+
+或者直接借助`Integer.compare(int, int)`也可以返回正确的比较结果。
+
+ 注意
+
+使用TreeMap时，对Key的比较需要正确实现相等、大于和小于逻辑！
+
+##### 7.7.2 小结
+
+`SortedMap`在遍历时严格按照Key的顺序遍历，最常用的实现类是`TreeMap`；
+
+作为`SortedMap`的Key必须实现`Comparable`接口，或者传入`Comparator`；
+
+要严格按照`compare()`规范实现比较逻辑，否则，`TreeMap`将不能正常工作。
+
+#### 7.8 使用Set
+
+##### 7.8.1 使用
+
+我们知道，`Map`用于存储key-value的映射，对于充当key的对象，是不能重复的，并且，不但需要正确覆写`equals()`方法，还要正确覆写`hashCode()`方法。
+
+如果我们只需要存储不重复的key，并不需要存储映射的value，那么就可以使用`Set`。
+
+`Set`用于存储不重复的元素集合，它主要提供以下几个方法：
+
+- 将元素添加进`Set<E>`：`boolean add(E e)`
+- 将元素从`Set<E>`删除：`boolean remove(Object e)`
+- 判断是否包含元素：`boolean contains(Object e)`
+
+我们来看几个简单的例子：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Set<String> set = new HashSet<>();
+        System.out.println(set.add("abc")); // true
+        System.out.println(set.add("xyz")); // true
+        System.out.println(set.add("xyz")); // false，添加失败，因为元素已存在
+        System.out.println(set.contains("xyz")); // true，元素存在
+        System.out.println(set.contains("XYZ")); // false，元素不存在
+        System.out.println(set.remove("hello")); // false，删除失败，因为元素不存在
+        System.out.println(set.size()); // 2，一共两个元素
+    }
+}
+```
+
+`Set`实际上相当于只存储key、不存储value的`Map`。我们经常用`Set`用于去除重复元素。
+
+因为放入`Set`的元素和`Map`的key类似，都要正确实现`equals()`和`hashCode()`方法，否则该元素无法正确地放入`Set`。
+
+最常用的`Set`实现类是`HashSet`，实际上，`HashSet`仅仅是对`HashMap`的一个简单封装，它的核心代码如下：
+
+```java
+public class HashSet<E> implements Set<E> {
+    // 持有一个HashMap:
+    private HashMap<E, Object> map = new HashMap<>();
+
+    // 放入HashMap的value:
+    private static final Object PRESENT = new Object();
+
+    public boolean add(E e) {
+        return map.put(e, PRESENT) == null;
+    }
+
+    public boolean contains(Object o) {
+        return map.containsKey(o);
+    }
+
+    public boolean remove(Object o) {
+        return map.remove(o) == PRESENT;
+    }
+}
+```
+
+##### 7.8.2 有序无序
+
+`Set`接口并不保证有序，而`SortedSet`接口则保证元素是有序的：
+
+- `HashSet`是无序的，因为它实现了`Set`接口，并没有实现`SortedSet`接口；
+- `TreeSet`是有序的，因为它实现了`SortedSet`接口。
+
+用一张图表示：
+
+```
+       ┌───┐
+       │Set│
+       └───┘
+         ▲
+    ┌────┴─────┐
+    │          │
+┌───────┐ ┌─────────┐
+│HashSet│ │SortedSet│
+└───────┘ └─────────┘
+               ▲
+               │
+          ┌─────────┐
+          │ TreeSet │
+          └─────────┘
+```
+
+我们来看`HashSet`的输出：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Set<String> set = new HashSet<>();
+        set.add("apple");
+        set.add("banana");
+        set.add("pear");
+        set.add("orange");
+        for (String s : set) {
+            System.out.println(s);
+        }
+    }
+}
+```
+
+注意输出的顺序既不是添加的顺序，也不是`String`排序的顺序，在不同版本的JDK中，这个顺序也可能是不同的。
+
+把`HashSet`换成`TreeSet`，在遍历`TreeSet`时，输出就是有序的，这个顺序是元素的排序顺序：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Set<String> set = new TreeSet<>();
+        set.add("apple");
+        set.add("banana");
+        set.add("pear");
+        set.add("orange");
+        for (String s : set) {
+            System.out.println(s);
+        }
+    }
+}
+```
+
+使用`TreeSet`和使用`TreeMap`的要求一样，添加的元素必须正确实现`Comparable`接口，如果没有实现`Comparable`接口，那么创建`TreeSet`时必须传入一个`Comparator`对象。
+
+##### 7.8.3 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
