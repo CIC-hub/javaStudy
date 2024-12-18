@@ -4072,7 +4072,2069 @@ public class Main {
 
 使用`TreeSet`和使用`TreeMap`的要求一样，添加的元素必须正确实现`Comparable`接口，如果没有实现`Comparable`接口，那么创建`TreeSet`时必须传入一个`Comparator`对象。
 
-##### 7.8.3 
+##### 7.8.3 小结
+
+`Set`用于存储不重复的元素集合：
+
+- 放入`HashSet`的元素与作为`HashMap`的key要求相同；
+- 放入`TreeSet`的元素与作为`TreeMap`的Key要求相同。
+
+利用`Set`可以去除重复元素；
+
+遍历`SortedSet`按照元素的排序顺序遍历，也可以自定义排序算法。
+
+#### 7.9 使用Queue
+
+##### 7.9.1 使用
+
+队列（`Queue`）是一种经常使用的集合。`Queue`实际上是实现了一个先进先出（FIFO：First In First Out）的有序表。它和`List`的区别在于，`List`可以在任意位置添加和删除元素，而`Queue`只有两个操作：
+
+- 把元素添加到队列末尾；
+- 从队列头部取出元素。
+
+超市的收银台就是一个队列：
+
+![queue](https://liaoxuefeng.com/books/java/collection/queue/queue.jpg)
+
+在Java的标准库中，队列接口`Queue`定义了以下几个方法：
+
+- `int size()`：获取队列长度；
+- `boolean add(E)`/`boolean offer(E)`：添加元素到队尾；
+- `E remove()`/`E poll()`：获取队首元素并从队列中删除；
+- `E element()`/`E peek()`：获取队首元素但并不从队列中删除。
+
+对于具体的实现类，有的Queue有最大队列长度限制，有的Queue没有。注意到添加、删除和获取队列元素总是有两个方法，这是因为在添加或获取元素失败时，这两个方法的行为是不同的。我们用一个表格总结如下：
+
+|                    | throw Exception | 返回false或null    |
+| ------------------ | --------------- | ------------------ |
+| 添加元素到队尾     | add(E e)        | boolean offer(E e) |
+| 取队首元素并删除   | E remove()      | E poll()           |
+| 取队首元素但不删除 | E element()     | E peek()           |
+
+举个栗子，假设我们有一个队列，对它做一个添加操作，如果调用`add()`方法，当添加失败时（可能超过了队列的容量），它会抛出异常：
+
+```java
+Queue<String> q = ...
+try {
+    q.add("Apple");
+    System.out.println("添加成功");
+} catch(IllegalStateException e) {
+    System.out.println("添加失败");
+}
+```
+
+如果我们调用`offer()`方法来添加元素，当添加失败时，它不会抛异常，而是返回`false`：
+
+```java
+Queue<String> q = ...
+if (q.offer("Apple")) {
+    System.out.println("添加成功");
+} else {
+    System.out.println("添加失败");
+}
+```
+
+当我们需要从`Queue`中取出队首元素时，如果当前`Queue`是一个空队列，调用`remove()`方法，它会抛出异常：
+
+```java
+Queue<String> q = ...
+try {
+    String s = q.remove();
+    System.out.println("获取成功");
+} catch(IllegalStateException e) {
+    System.out.println("获取失败");
+}
+```
+
+如果我们调用`poll()`方法来取出队首元素，当获取失败时，它不会抛异常，而是返回`null`：
+
+```java
+Queue<String> q = ...
+String s = q.poll();
+if (s != null) {
+    System.out.println("获取成功");
+} else {
+    System.out.println("获取失败");
+}
+```
+
+因此，两套方法可以根据需要来选择使用。
+
+注意：不要把`null`添加到队列中，否则`poll()`方法返回`null`时，很难确定是取到了`null`元素还是队列为空。
+
+接下来我们以`poll()`和`peek()`为例来说说“获取并删除”与“获取但不删除”的区别。对于`Queue`来说，每次调用`poll()`，都会获取队首元素，并且获取到的元素已经从队列中被删除了：
+
+```java
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Main {
+    public static void main(String[] args) {
+        Queue<String> q = new LinkedList<>();
+        // 添加3个元素到队列:
+        q.offer("apple");
+        q.offer("pear");
+        q.offer("banana");
+        // 从队列取出元素:
+        System.out.println(q.poll()); // apple
+        System.out.println(q.poll()); // pear
+        System.out.println(q.poll()); // banana
+        System.out.println(q.poll()); // null,因为队列是空的
+    }
+}
+```
+
+如果用`peek()`，因为获取队首元素时，并不会从队列中删除这个元素，所以可以反复获取：
+
+```java
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class Main {
+    public static void main(String[] args) {
+        Queue<String> q = new LinkedList<>();
+        // 添加3个元素到队列:
+        q.offer("apple");
+        q.offer("pear");
+        q.offer("banana");
+        // 队首永远都是apple，因为peek()不会删除它:
+        System.out.println(q.peek()); // apple
+        System.out.println(q.peek()); // apple
+        System.out.println(q.peek()); // apple
+    }
+}
+```
+
+从上面的代码中，我们还可以发现，`LinkedList`即实现了`List`接口，又实现了`Queue`接口，但是，在使用的时候，如果我们把它当作List，就获取List的引用，如果我们把它当作Queue，就获取Queue的引用：
+
+```java
+// 这是一个List:
+List<String> list = new LinkedList<>();
+// 这是一个Queue:
+Queue<String> queue = new LinkedList<>();
+```
+
+始终按照面向抽象编程的原则编写代码，可以大大提高代码的质量。
+
+##### 7.9.2 小结
+
+队列`Queue`实现了一个先进先出（FIFO）的数据结构：
+
+- 通过`add()`/`offer()`方法将元素添加到队尾；
+- 通过`remove()`/`poll()`从队首获取元素并删除；
+- 通过`element()`/`peek()`从队首获取元素但不删除。
+
+要避免把`null`添加到队列。
+
+#### 7.10 使用Iterator
+
+##### 7.10.1 使用
+
+Java的集合类都可以使用`for each`循环，`List`、`Set`和`Queue`会迭代每个元素，`Map`会迭代每个key。以`List`为例：
+
+```java
+List<String> list = List.of("Apple", "Orange", "Pear");
+for (String s : list) {
+    System.out.println(s);
+}
+```
+
+实际上，Java编译器并不知道如何遍历`List`。上述代码能够编译通过，只是因为编译器把`for each`循环通过`Iterator`改写为了普通的`for`循环：
+
+```java
+for (Iterator<String> it = list.iterator(); it.hasNext(); ) {
+     String s = it.next();
+     System.out.println(s);
+}
+```
+
+我们把这种通过`Iterator`对象遍历集合的模式称为迭代器。
+
+使用迭代器的好处在于，调用方总是以统一的方式遍历各种集合类型，而不必关心它们内部的存储结构。
+
+例如，我们虽然知道`ArrayList`在内部是以数组形式存储元素，并且，它还提供了`get(int)`方法。虽然我们可以用`for`循环遍历：
+
+```java
+for (int i=0; i<list.size(); i++) {
+    Object value = list.get(i);
+}
+```
+
+但是这样一来，调用方就必须知道集合的内部存储结构。并且，如果把`ArrayList`换成`LinkedList`，`get(int)`方法耗时会随着index的增加而增加。如果把`ArrayList`换成`Set`，上述代码就无法编译，因为`Set`内部没有索引。
+
+用`Iterator`遍历就没有上述问题，因为`Iterator`对象是集合对象自己在内部创建的，它自己知道如何高效遍历内部的数据集合，调用方则获得了统一的代码，编译器才能把标准的`for each`循环自动转换为`Iterator`遍历。
+
+如果我们自己编写了一个集合类，想要使用`for each`循环，只需满足以下条件：
+
+- 集合类实现`Iterable`接口，该接口要求返回一个`Iterator`对象；
+- 用`Iterator`对象迭代集合内部数据。
+
+这里的关键在于，集合类通过调用`iterator()`方法，返回一个`Iterator`对象，这个对象必须自己知道如何遍历该集合。
+
+一个简单的`Iterator`示例如下，它总是以倒序遍历集合：
+
+```java
+// Iterator
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        ReverseList<String> rlist = new ReverseList<>();
+        rlist.add("Apple");
+        rlist.add("Orange");
+        rlist.add("Pear");
+        for (String s : rlist) {
+            System.out.println(s);
+        }
+    }
+}
+
+class ReverseList<T> implements Iterable<T> {
+
+    private List<T> list = new ArrayList<>();
+
+    public void add(T t) {
+        list.add(t);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new ReverseIterator(list.size());
+    }
+
+    class ReverseIterator implements Iterator<T> {
+        int index;
+
+        ReverseIterator(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index > 0;
+        }
+
+        @Override
+        public T next() {
+            index--;
+            return ReverseList.this.list.get(index);
+        }
+    }
+}
+```
+
+虽然`ReverseList`和`ReverseIterator`的实现类稍微比较复杂，但是，注意到这是底层集合库，只需编写一次。而调用方则完全按`for each`循环编写代码，根本不需要知道集合内部的存储逻辑和遍历逻辑。
+
+在编写`Iterator`的时候，我们通常可以用一个内部类来实现`Iterator`接口，这个内部类可以直接访问对应的外部类的所有字段和方法。例如，上述代码中，内部类`ReverseIterator`可以用`ReverseList.this`获得当前外部类的`this`引用，然后，通过这个`this`引用就可以访问`ReverseList`的所有字段和方法。
+
+##### 7.10.2 小结
+
+`Iterator`是一种抽象的数据访问模型。使用`Iterator`模式进行迭代的好处有：
+
+- 对任何集合都采用同一种访问模型；
+- 调用者对集合内部结构一无所知；
+- 集合类返回的`Iterator`对象知道如何迭代。
+
+Java提供了标准的迭代器模型，即集合类实现`java.util.Iterable`接口，返回`java.util.Iterator`实例。
+
+#### 7.11 使用Collections
+
+##### 7.11.1 引入
+
+`Collections`是JDK提供的工具类，同样位于`java.util`包中。它提供了一系列静态方法，能更方便地操作各种集合。
+
+ 注意
+
+Collections结尾多了一个s，不是Collection！
+
+我们一般看方法名和参数就可以确认`Collections`提供的该方法的功能。例如，对于以下静态方法：
+
+```text
+public static boolean addAll(Collection<? super T> c, T... elements) { ... }
+```
+
+`addAll()`方法可以给一个`Collection`类型的集合添加若干元素。因为方法签名是`Collection`，所以我们可以传入`List`，`Set`等各种集合类型。
+
+##### 7.11.2 创建空集合
+
+对于旧版的JDK，可以使用`Collections`提供的一系列方法来创建空集合：
+
+- 创建空List：`List<T> emptyList()`
+- 创建空Map：`Map<K, V> emptyMap()`
+- 创建空Set：`Set<T> emptySet()`
+
+要注意到返回的空集合是不可变集合，无法向其中添加或删除元素。
+
+新版的JDK≥9可以直接使用`List.of()`、`Map.of()`、`Set.of()`来创建空集合。
+
+##### 7.11.3 创建单元素集合
+
+对于旧版的JDK，`Collections`提供了一系列方法来创建一个单元素集合：
+
+- 创建一个元素的List：`List<T> singletonList(T o)`
+- 创建一个元素的Map：`Map<K, V> singletonMap(K key, V value)`
+- 创建一个元素的Set：`Set<T> singleton(T o)`
+
+要注意到返回的单元素集合也是不可变集合，无法向其中添加或删除元素。
+
+新版的JDK≥9可以直接使用`List.of(T...)`、`Map.of(T...)`、`Set.of(T...)`来创建任意个元素的集合。
+
+##### 7.11.4 排序
+
+`Collections`可以对`List`进行排序。因为排序会直接修改`List`元素的位置，因此必须传入可变`List`：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("apple");
+        list.add("pear");
+        list.add("orange");
+        // 排序前:
+        System.out.println(list);
+        Collections.sort(list);
+        // 排序后:
+        System.out.println(list);
+    }
+}
+```
+
+##### 7.11.5 洗牌
+
+`Collections`提供了洗牌算法，即传入一个有序的`List`，可以随机打乱`List`内部元素的顺序，效果相当于让计算机洗牌：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<Integer> list = new ArrayList<>();
+        for (int i=0; i<10; i++) {
+            list.add(i);
+        }
+        // 洗牌前:
+        System.out.println(list);
+        // 洗牌:
+        Collections.shuffle(list);
+        // 洗牌后:
+        System.out.println(list);
+    }
+}
+```
+
+##### 7.11.6 不可变集合
+
+`Collections`还提供了一组方法把可变集合封装成不可变集合：
+
+- 封装成不可变List：`List<T> unmodifiableList(List<? extends T> list)`
+- 封装成不可变Set：`Set<T> unmodifiableSet(Set<? extends T> set)`
+- 封装成不可变Map：`Map<K, V> unmodifiableMap(Map<? extends K, ? extends V> m)`
+
+这种封装实际上是通过创建一个代理对象，拦截掉所有修改方法实现的。我们来看看效果：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> mutable = new ArrayList<>();
+        mutable.add("apple");
+        mutable.add("pear");
+        // 变为不可变集合:
+        List<String> immutable = Collections.unmodifiableList(mutable);
+        immutable.add("orange"); // UnsupportedOperationException!
+    }
+}
+```
+
+然而，继续对原始的可变`List`进行增删是可以的，并且，会直接影响到封装后的“不可变”`List`：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> mutable = new ArrayList<>();
+        mutable.add("apple");
+        mutable.add("pear");
+        // 变为不可变集合:
+        List<String> immutable = Collections.unmodifiableList(mutable);
+        mutable.add("orange");
+        System.out.println(immutable);
+    }
+}
+```
+
+因此，如果我们希望把一个可变`List`封装成不可变`List`，那么，返回不可变`List`后，最好立刻扔掉可变`List`的引用，这样可以保证后续操作不会意外改变原始对象，从而造成“不可变”`List`变化了：
+
+```java
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> mutable = new ArrayList<>();
+        mutable.add("apple");
+        mutable.add("pear");
+        // 变为不可变集合:
+        List<String> immutable = Collections.unmodifiableList(mutable);
+        // 立刻扔掉mutable的引用:
+        mutable = null;
+        System.out.println(immutable);
+    }
+}
+```
+
+##### 7.11.7 线程安全集合
+
+`Collections`还提供了一组方法，可以把线程不安全的集合变为线程安全的集合：
+
+- 变为线程安全的List：`List<T> synchronizedList(List<T> list)`
+- 变为线程安全的Set：`Set<T> synchronizedSet(Set<T> s)`
+- 变为线程安全的Map：`Map<K,V> synchronizedMap(Map<K,V> m)`
+
+多线程的概念我们会在后面讲。因为从Java 5开始，引入了更高效的并发集合类，所以上述这几个同步方法已经没有什么用了。
+
+##### 7.11.8 小结
+
+`Collections`类提供了一组工具方法来方便使用集合类：
+
+- 创建空集合；
+- 创建单元素集合；
+- 创建不可变集合；
+- 排序／洗牌等操作。
+
+### 八、注解
+
+#### 8.1 使用注解
+
+什么是注解（Annotation）？注解是放在Java源码的类、方法、字段、参数前的一种特殊“注释”：
+
+```java
+// this is a component:
+@Resource("hello")
+public class Hello {
+    @Inject
+    int n;
+
+    @PostConstruct
+    public void hello(@Param String name) {
+        System.out.println(name);
+    }
+
+    @Override
+    public String toString() {
+        return "Hello";
+    }
+}
+```
+
+注释会被编译器直接忽略，注解则可以被编译器打包进入class文件，因此，注解是一种用作标注的“元数据”。
+
+##### 8.1.1 注解的作用
+
+从JVM的角度看，注解本身对代码逻辑没有任何影响，如何使用注解完全由工具决定。
+
+Java的注解可以分为三类：
+
+第一类是由编译器使用的注解，例如：
+
+- `@Override`：让编译器检查该方法是否正确地实现了覆写；
+- `@SuppressWarnings`：告诉编译器忽略此处代码产生的警告。
+
+这类注解不会被编译进入`.class`文件，它们在编译后就被编译器扔掉了。
+
+第二类是由工具处理`.class`文件使用的注解，比如有些工具会在加载class的时候，对class做动态修改，实现一些特殊的功能。这类注解会被编译进入`.class`文件，但加载结束后并不会存在于内存中。这类注解只被一些底层库使用，一般我们不必自己处理。
+
+第三类是在程序运行期能够读取的注解，它们在加载后一直存在于JVM中，这也是最常用的注解。例如，一个配置了`@PostConstruct`的方法会在调用构造方法后自动被调用（这是Java代码读取该注解实现的功能，JVM并不会识别该注解）。
+
+定义一个注解时，还可以定义配置参数。配置参数可以包括：
+
+- 所有基本类型；
+- String；
+- 枚举类型；
+- 基本类型、String、Class以及枚举的数组。
+
+因为配置参数必须是常量，所以，上述限制保证了注解在定义时就已经确定了每个参数的值。
+
+注解的配置参数可以有默认值，缺少某个配置参数时将使用默认值。
+
+此外，大部分注解会有一个名为`value`的配置参数，对此参数赋值，可以只写常量，相当于省略了value参数。
+
+如果只写注解，相当于全部使用默认值。
+
+举个栗子，对以下代码：
+
+```java
+public class Hello {
+    @Check(min=0, max=100, value=55)
+    public int n;
+
+    @Check(value=99)
+    public int p;
+
+    @Check(99) // @Check(value=99)
+    public int x;
+
+    @Check
+    public int y;
+}
+```
+
+`@Check`就是一个注解。第一个`@Check(min=0, max=100, value=55)`明确定义了三个参数，第二个`@Check(value=99)`只定义了一个`value`参数，它实际上和`@Check(99)`是完全一样的。最后一个`@Check`表示所有参数都使用默认值。
+
+##### 8.1.2 小结
+
+注解（Annotation）是Java语言用于工具处理的标注：
+
+注解可以配置参数，没有指定配置的参数使用默认值；
+
+如果参数名称是`value`，且只有一个参数，那么可以省略参数名称。
+
+#### 8.2 定义注解
+
+Java语言使用`@interface`语法来定义注解（`Annotation`），它的格式如下：
+
+```java
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+注解的参数类似无参数方法，可以用`default`设定一个默认值（强烈推荐）。最常用的参数应当命名为`value`。
+
+##### 8.2.1 元注解
+
+有一些注解可以修饰其他注解，这些注解就称为元注解（meta annotation）。Java标准库已经定义了一些元注解，我们只需要使用元注解，通常不需要自己去编写元注解。
+
+##### 8.2.2 @Target
+
+最常用的元注解是`@Target`。使用`@Target`可以定义`Annotation`能够被应用于源码的哪些位置：
+
+- 类或接口：`ElementType.TYPE`；
+- 字段：`ElementType.FIELD`；
+- 方法：`ElementType.METHOD`；
+- 构造方法：`ElementType.CONSTRUCTOR`；
+- 方法参数：`ElementType.PARAMETER`。
+
+例如，定义注解`@Report`可用在方法上，我们必须添加一个`@Target(ElementType.METHOD)`：
+
+```java
+@Target(ElementType.METHOD)
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+定义注解`@Report`可用在方法或字段上，可以把`@Target`注解参数变为数组`{ ElementType.METHOD, ElementType.FIELD }`：
+
+```java
+@Target({
+    ElementType.METHOD,
+    ElementType.FIELD
+})
+public @interface Report {
+    ...
+}
+```
+
+实际上`@Target`定义的`value`是`ElementType[]`数组，只有一个元素时，可以省略数组的写法。
+
+##### 8.2.3 @Retention
+
+另一个重要的元注解`@Retention`定义了`Annotation`的生命周期：
+
+- 仅编译期：`RetentionPolicy.SOURCE`；
+- 仅class文件：`RetentionPolicy.CLASS`；
+- 运行期：`RetentionPolicy.RUNTIME`。
+
+如果`@Retention`不存在，则该`Annotation`默认为`CLASS`。因为通常我们自定义的`Annotation`都是`RUNTIME`，所以，务必要加上`@Retention(RetentionPolicy.RUNTIME)`这个元注解：
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+##### 8.2.4 @Repeatable
+
+使用`@Repeatable`这个元注解可以定义`Annotation`是否可重复。这个注解应用不是特别广泛。
+
+```java
+@Repeatable(Reports.class)
+@Target(ElementType.TYPE)
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+
+@Target(ElementType.TYPE)
+public @interface Reports {
+    Report[] value();
+}
+```
+
+经过`@Repeatable`修饰后，在某个类型声明处，就可以添加多个`@Report`注解：
+
+```java
+@Report(type=1, level="debug")
+@Report(type=2, level="warning")
+public class Hello {
+}
+```
+
+##### 8.2.5 @Inherited
+
+使用`@Inherited`定义子类是否可继承父类定义的`Annotation`。`@Inherited`仅针对`@Target(ElementType.TYPE)`类型的`annotation`有效，并且仅针对`class`的继承，对`interface`的继承无效：
+
+```java
+@Inherited
+@Target(ElementType.TYPE)
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+在使用的时候，如果一个类用到了`@Report`：
+
+```java
+@Report(type=1)
+public class Person {
+}
+```
+
+则它的子类默认也定义了该注解：
+
+```java
+public class Student extends Person {
+}
+```
+
+##### 8.2.6 如何定义Annotation
+
+我们总结一下定义`Annotation`的步骤：
+
+第一步，用`@interface`定义注解：
+
+```java
+public @interface Report {
+}
+```
+
+第二步，添加参数、默认值：
+
+```java
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+把最常用的参数定义为`value()`，推荐所有参数都尽量设置默认值。
+
+第三步，用元注解配置注解：
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Report {
+    int type() default 0;
+    String level() default "info";
+    String value() default "";
+}
+```
+
+其中，必须设置`@Target`和`@Retention`，`@Retention`一般设置为`RUNTIME`，因为我们自定义的注解通常要求在运行期读取。一般情况下，不必写`@Inherited`和`@Repeatable`。
+
+##### 8.2.7 小结
+
+Java使用`@interface`定义注解；
+
+可定义多个参数和默认值，核心参数使用`value`名称；
+
+必须设置`@Target`来指定`Annotation`可以应用的范围；
+
+应当设置`@Retention(RetentionPolicy.RUNTIME)`便于运行期读取该`Annotation`。
+
+#### 8.3 处理注解
+
+Java的注解本身对代码逻辑没有任何影响。根据`@Retention`的配置：
+
+- `SOURCE`类型的注解在编译期就被丢掉了；
+- `CLASS`类型的注解仅保存在class文件中，它们不会被加载进JVM；
+- `RUNTIME`类型的注解会被加载进JVM，并且在运行期可以被程序读取。
+
+如何使用注解完全由工具决定。`SOURCE`类型的注解主要由编译器使用，因此我们一般只使用，不编写。`CLASS`类型的注解主要由底层工具库使用，涉及到class的加载，一般我们很少用到。只有`RUNTIME`类型的注解不但要使用，还经常需要编写。
+
+因此，我们只讨论如何读取`RUNTIME`类型的注解。
+
+因为注解定义后也是一种`class`，所有的注解都继承自`java.lang.annotation.Annotation`，因此，读取注解，需要使用反射API。
+
+Java提供的使用反射API读取`Annotation`的方法包括：
+
+判断某个注解是否存在于`Class`、`Field`、`Method`或`Constructor`：
+
+- Class.isAnnotationPresent(Class)
+- Field.isAnnotationPresent(Class)
+- Method.isAnnotationPresent(Class)
+- Constructor.isAnnotationPresent(Class)
+
+例如：
+
+```java
+// 判断@Report是否存在于Person类:
+Person.class.isAnnotationPresent(Report.class);
+```
+
+使用反射API读取Annotation：
+
+- Class.getAnnotation(Class)
+- Field.getAnnotation(Class)
+- Method.getAnnotation(Class)
+- Constructor.getAnnotation(Class)
+
+例如：
+
+```java
+// 获取Person定义的@Report注解:
+Report report = Person.class.getAnnotation(Report.class);
+int type = report.type();
+String level = report.level();
+```
+
+使用反射API读取`Annotation`有两种方法。方法一是先判断`Annotation`是否存在，如果存在，就直接读取：
+
+```java
+Class cls = Person.class;
+if (cls.isAnnotationPresent(Report.class)) {
+    Report report = cls.getAnnotation(Report.class);
+    ...
+}
+```
+
+第二种方法是直接读取`Annotation`，如果`Annotation`不存在，将返回`null`：
+
+```java
+Class cls = Person.class;
+Report report = cls.getAnnotation(Report.class);
+if (report != null) {
+   ...
+}
+```
+
+读取方法、字段和构造方法的`Annotation`和Class类似。但要读取方法参数的`Annotation`就比较麻烦一点，因为方法参数本身可以看成一个数组，而每个参数又可以定义多个注解，所以，一次获取方法参数的所有注解就必须用一个二维数组来表示。例如，对于以下方法定义的注解：
+
+```java
+public void hello(@NotNull @Range(max=5) String name, @NotNull String prefix) {
+}
+```
+
+要读取方法参数的注解，我们先用反射获取`Method`实例，然后读取方法参数的所有注解：
+
+```java
+// 获取Method实例:
+Method m = ...
+// 获取所有参数的Annotation:
+Annotation[][] annos = m.getParameterAnnotations();
+// 第一个参数（索引为0）的所有Annotation:
+Annotation[] annosOfName = annos[0];
+for (Annotation anno : annosOfName) {
+    if (anno instanceof Range r) { // @Range注解
+        r.max();
+    }
+    if (anno instanceof NotNull n) { // @NotNull注解
+        //
+    }
+}
+```
+
+##### 8.3.1 使用注解
+
+注解如何使用，完全由程序自己决定。例如，JUnit是一个测试框架，它会自动运行所有标记为`@Test`的方法。
+
+我们来看一个`@Range`注解，我们希望用它来定义一个`String`字段的规则：字段长度满足`@Range`的参数定义：
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Range {
+    int min() default 0;
+    int max() default 255;
+}
+```
+
+在某个JavaBean中，我们可以使用该注解：
+
+```java
+public class Person {
+    @Range(min=1, max=20)
+    public String name;
+
+    @Range(max=10)
+    public String city;
+}
+```
+
+但是，定义了注解，本身对程序逻辑没有任何影响。我们必须自己编写代码来使用注解。这里，我们编写一个`Person`实例的检查方法，它可以检查`Person`实例的`String`字段长度是否满足`@Range`的定义：
+
+```java
+void check(Person person) throws IllegalArgumentException, ReflectiveOperationException {
+    // 遍历所有Field:
+    for (Field field : person.getClass().getFields()) {
+        // 获取Field定义的@Range:
+        Range range = field.getAnnotation(Range.class);
+        // 如果@Range存在:
+        if (range != null) {
+            // 获取Field的值:
+            Object value = field.get(person);
+            // 如果值是String:
+            if (value instanceof String s) {
+                // 判断值是否满足@Range的min/max:
+                if (s.length() < range.min() || s.length() > range.max()) {
+                    throw new IllegalArgumentException("Invalid field: " + field.getName());
+                }
+            }
+        }
+    }
+}
+```
+
+这样一来，我们通过`@Range`注解，配合`check()`方法，就可以完成`Person`实例的检查。注意检查逻辑完全是我们自己编写的，JVM不会自动给注解添加任何额外的逻辑。
+
+##### 8.3.2 小结
+
+可以在运行期通过反射读取`RUNTIME`类型的注解，注意千万不要漏写`@Retention(RetentionPolicy.RUNTIME)`，否则运行期无法读取到该注解。
+
+可以通过程序处理注解来实现相应的功能：
+
+- 对JavaBean的属性值按规则进行检查；
+- JUnit会自动运行`@Test`标记的测试方法。
+
+### 九、泛型
+
+#### 9.1 什么是泛型
+
+泛型是一种“代码模板”，可以用一套代码套用各种类型。
+
+##### 9.1.1 定义
+
+泛型就是定义一种模板，例如`ArrayList<T>`，然后在代码中为用到的类创建对应的`ArrayList<类型>`。由编译器针对类型作检查。
+
+##### 9.1.2 向上转型
+
+在Java标准库中的`ArrayList<T>`实现了`List<T>`接口，它可以向上转型为`List<T>`，即类型`ArrayList<T>`可以向上转型为`List<T>`。
+
+要*特别注意*：不能把`ArrayList<Integer>`向上转型为`ArrayList<Number>`或`List<Number>`。
+
+`ArrayList<Integer>`和`ArrayList<Number>`两者完全没有继承关系。
+
+泛型的继承关系，是`T`不变时，可以向上转型，`T`本身不能向上转型。
+
+##### 9.1.3 小结
+
+泛型就是编写模板代码来适应任意类型；
+
+泛型的好处是使用时不必对类型进行强制转换，它通过编译器对类型进行检查；
+
+注意泛型的继承关系：可以把`ArrayList<Integer>`向上转型为`List<Integer>`（`T`不能变！），但不能把`ArrayList<Integer>`向上转型为`ArrayList<Number>`（`T`不能变成父类）。
+
+#### 9.2 使用泛型
+
+使用`ArrayList`时，如果不定义泛型类型时，泛型类型实际上就是`Object`。
+
+编译器如果能自动推断出泛型类型，就可以省略后面的泛型类型。
+
+```java
+// 可以省略后面的Number，编译器可以自动推断泛型类型：
+List<Number> list = new ArrayList<>();
+```
+
+##### 9.2.1 泛型接口
+
+除了`ArrayList<T>`使用了泛型，还可以在接口中使用泛型。例如，`Arrays.sort(Object[])`可以对任意数组进行排序，但待排序的元素必须实现`Comparable<T>`这个泛型接口：
+
+```java
+public interface Comparable<T> {
+    /**
+     * 返回负数: 当前实例比参数o小
+     * 返回0: 当前实例与参数o相等
+     * 返回正数: 当前实例比参数o大
+     */
+    int compareTo(T o);
+}
+```
+
+可以直接对`String`数组进行排序：
+
+```java
+// sort
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] ss = new String[] { "Orange", "Apple", "Pear" };
+        Arrays.sort(ss);
+        System.out.println(Arrays.toString(ss));
+    }
+}
+```
+
+这是因为`String`本身已经实现了`Comparable<String>`接口。如果换成我们自定义的`Person`类型试试，让`Person`实现`Comparable<T>`接口：
+
+```java
+// sort
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        Person[] ps = new Person[] {
+            new Person("Bob", 61),
+            new Person("Alice", 88),
+            new Person("Lily", 75),
+        };
+        Arrays.sort(ps);
+        System.out.println(Arrays.toString(ps));
+    }
+}
+
+class Person implements Comparable<Person> {
+    String name;
+    int score;
+    Person(String name, int score) {
+        this.name = name;
+        this.score = score;
+    }
+    public int compareTo(Person other) {
+        return this.name.compareTo(other.name);
+    }
+    public String toString() {
+        return this.name + "," + this.score;
+    }
+}
+```
+
+运行上述代码，可以正确实现按`name`进行排序。也可以修改比较逻辑，例如，按`score`从高到低排序。
+
+##### 9.2.2 小结
+
+使用泛型时，把泛型参数`<T>`替换为需要的class类型，例如：`ArrayList<String>`，`ArrayList<Number>`等；
+
+可以省略编译器能自动推断出的类型，例如：`List<String> list = new ArrayList<>();`；
+
+不指定泛型参数类型时，编译器会给出警告，且只能将`<T>`视为`Object`类型；
+
+可以在接口中定义泛型类型，实现此接口的类必须实现正确的泛型类型。
+
+#### 9.3 编写泛型
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 十、异常处理
+
+#### 10.1 Java的异常
+
+##### 10.1.1 异常
+
+Java内置了一套异常处理机制，总是使用异常来表示错误。
+
+异常是一种`class`，因此它本身带有类型信息。异常可以在任何地方抛出，但只需要在上层捕获，这样就和方法调用分离了
+
+```
+                     ┌───────────┐
+                     │  Object   │
+                     └───────────┘
+                           ▲
+                           │
+                     ┌───────────┐
+                     │ Throwable │
+                     └───────────┘
+                           ▲
+                 ┌─────────┴─────────┐
+                 │                   │
+           ┌───────────┐       ┌───────────┐
+           │   Error   │       │ Exception │
+           └───────────┘       └───────────┘
+                 ▲                   ▲
+         ┌───────┘              ┌────┴──────────┐
+         │                      │               │
+┌─────────────────┐    ┌─────────────────┐┌───────────┐
+│OutOfMemoryError │... │RuntimeException ││IOException│...
+└─────────────────┘    └─────────────────┘└───────────┘
+                                ▲
+                    ┌───────────┴─────────────┐
+                    │                         │
+         ┌─────────────────────┐ ┌─────────────────────────┐
+         │NullPointerException │ │IllegalArgumentException │...
+         └─────────────────────┘ └─────────────────────────┘
+```
+
+`Exception`又分为两大类：
+
+1. `RuntimeException`以及它的子类；
+2. 非`RuntimeException`（包括`IOException`、`ReflectiveOperationException`等等）
+
+Java规定：
+
+- 必须捕获的异常，包括`Exception`及其子类，但不包括`RuntimeException`及其子类，这种类型的异常称为Checked Exception。
+- 不需要捕获的异常，包括`Error`及其子类，`RuntimeException`及其子类。
+
+ 注意
+
+编译器对RuntimeException及其子类不做强制捕获要求，不是指应用程序本身不应该捕获并处理RuntimeException。是否需要捕获，具体问题具体分析。
+
+##### 10.1.2 小结
+
+Java使用异常来表示错误，并通过`try ... catch`捕获异常；
+
+Java的异常是`class`，并且从`Throwable`继承；
+
+`Error`是无需捕获的严重错误，`Exception`是应该捕获的可处理的错误；
+
+`RuntimeException`无需强制捕获，非`RuntimeException`（Checked Exception）需强制捕获，或者用`throws`声明；
+
+不推荐捕获了异常但不进行任何处理。
+
+#### 10.2 捕获异常
+
+##### 10.2.1 多catch语句
+
+可以使用多个`catch`语句，每个`catch`分别捕获对应的`Exception`及其子类。JVM在捕获到异常后，会从上到下匹配`catch`语句，匹配到某个`catch`后，执行`catch`代码块，然后*不再*继续匹配。
+
+简单地说就是：多个`catch`语句只有一个能被执行。
+
+存在多个`catch`的时候，`catch`的顺序非常重要：子类必须写在前面。
+
+##### 10.2.2 finally语句
+
+无论是否有异常发生，都执行一些语句
+
+```java
+    try {
+        process();
+    } catch (UnsupportedEncodingException e) {
+        System.out.println("Bad encoding");
+    } catch (IOException e) {
+        System.out.println("IO error");
+    } finally {
+        System.out.println("END");
+    }
+```
+
+注意`finally`有几个特点：
+
+1. `finally`语句不是必须的，可写可不写；
+2. `finally`总是最后执行。
+
+如果没有发生异常，就正常执行`try { ... }`语句块，然后执行`finally`。如果发生了异常，就中断执行`try { ... }`语句块，然后跳转执行匹配的`catch`语句块，最后执行`finally`。
+
+某些情况下，可以没有`catch`，只使用`try ... finally`结构。例如：
+
+```java
+void process(String file) throws IOException {
+    try {
+        ...
+    } finally {
+        System.out.println("END");
+    }
+}
+```
+
+因为方法声明了可能抛出的异常，所以可以不写`catch`。
+
+##### 10.2.3 捕获多种异常
+
+用`|`合并到一起
+
+```java
+ try {
+        process();
+    } catch (IOException | NumberFormatException e) {
+        // IOException或NumberFormatException
+        System.out.println("Bad input");
+    }
+```
+
+##### 10.2.4 小结
+
+捕获异常时，多个`catch`语句的匹配顺序非常重要，子类必须放在前面；
+
+`finally`语句保证了有无异常都会执行，它是可选的；
+
+一个`catch`语句也可以匹配多个非继承关系的异常。
+
+#### 10.3 抛出异常
+
+##### 10.3.1 异常的传播
+
+当某个方法抛出了异常时，如果当前方法没有捕获异常，异常就会被抛到上层调用方法，直到遇到某个`try ... catch`被捕获为止
+
+##### 10.3.2 抛出异常
+
+抛出异常分两步：
+
+1. 创建某个`Exception`的实例；
+2. 用`throw`语句抛出。
+
+为了能追踪到完整的异常栈，在构造异常的时候，把原始的`Exception`实例传进去，新的`Exception`就可以持有原始`Exception`信息。
+
+在代码中获取原始异常可以使用`Throwable.getCause()`方法。如果返回`null`，说明已经是“根异常”了。
+
+如果我们在`try`或者`catch`语句块中抛出异常，不会影响`finally`的执行。JVM会先执行`finally`，然后抛出异常。
+
+##### 10.3.3 异常屏蔽
+
+在执行`finally`语句时抛出异常，那么，`catch`语句的异常不能继续抛出。
+
+`finally`抛出异常后，原来在`catch`中准备抛出的异常就“消失”了，因为只能抛出一个异常。没有被抛出的异常称为“被屏蔽”的异常（Suppressed Exception）。
+
+在极少数的情况下，我们需要获知所有的异常。保存所有的异常信息，方法是先用`origin`变量保存原始异常，然后调用`Throwable.addSuppressed()`，把原始异常添加进来，最后在`finally`抛出。
+
+通过`Throwable.getSuppressed()`可以获取所有的`Suppressed Exception`。
+
+绝大多数情况下，在`finally`中不要抛出异常。因此，我们通常不需要关心`Suppressed Exception`。
+
+##### 10.3.5 小结
+
+调用`printStackTrace()`可以打印异常的传播栈，对于调试非常有用；
+
+捕获异常并再次抛出新的异常时，应该持有原始异常信息；
+
+通常不要在`finally`中抛出异常。如果在`finally`中抛出异常，应该原始异常加入到原有异常中。调用方可通过`Throwable.getSuppressed()`获取所有添加的`Suppressed Exception`。
+
+##### 10.4 自定义异常
+
+Java标准库定义的常用异常包括：
+
+```
+Exception
+├─ RuntimeException
+│  ├─ NullPointerException
+│  ├─ IndexOutOfBoundsException
+│  ├─ SecurityException
+│  └─ IllegalArgumentException
+│     └─ NumberFormatException
+├─ IOException
+│  ├─ UnsupportedCharsetException
+│  ├─ FileNotFoundException
+│  └─ SocketException
+├─ ParseException
+├─ GeneralSecurityException
+├─ SQLException
+└─ TimeoutException
+```
+
+当我们在代码中需要抛出异常时，尽量使用JDK已定义的异常类型。例如，参数检查不合法，应该抛出`IllegalArgumentException`。
+
+##### 10.4.1 构造BaseException
+
+自定义一个`BaseException`作为“根异常”，然后，派生出各种业务类型的异常。
+
+`BaseException`需要从一个适合的`Exception`派生，通常建议从`RuntimeException`派生：
+
+```java
+public class BaseException extends RuntimeException {
+}
+```
+
+其他业务类型的异常就可以从`BaseException`派生：
+
+```java
+public class UserNotFoundException extends BaseException {
+}
+```
+
+自定义的`BaseException`应该提供多个构造方法：
+
+```java
+public class BaseException extends RuntimeException {
+    public BaseException() {
+        super();
+    }
+
+    public BaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public BaseException(String message) {
+        super(message);
+    }
+
+    public BaseException(Throwable cause) {
+        super(cause);
+    }
+}
+```
+
+上述构造方法实际上都是原样照抄`RuntimeException`。这样，抛出异常的时候，就可以选择合适的构造方法。通过IDE可以根据父类快速生成子类的构造方法。
+
+##### 10.4.2 小结
+
+抛出异常时，尽量复用JDK已定义的异常类型；
+
+自定义异常体系时，推荐从`RuntimeException`派生“根异常”，再派生出业务异常；
+
+自定义异常时，应该提供多种构造方法。
+
+#### 10.5 NullPointerException
+
+`NullPointerException`即空指针异常，俗称NPE，属于`RuntimeException`异常。如果一个对象为`null`，调用其方法或访问其字段就会产生`NullPointerException`，这个异常通常是由JVM抛出的。
+
+##### 10.5.1 处理NullPointerException
+
+`NullPointerException`是一种代码逻辑错误，遇到`NullPointerException`，遵循原则是早暴露，早修复，严禁使用`catch`来隐藏这种编码错误。
+
+好的编码习惯可以降低`NullPointerException`的产生，如成员变量在定义时初始化。
+
+使用空字符串`""`而不是默认的`null`可避免很多`NullPointerException`，编写业务逻辑时，用空字符串`""`表示未填写比`null`安全得多。
+
+```java
+public String[] readLinesFromFile(String file) {
+    if (getFileSize(file) == 0) {
+        // 返回空数组而不是null:
+        return new String[0];
+    }
+    ...
+}
+```
+
+如果调用方一定要根据`null`判断，比如返回`null`表示文件不存在，那么考虑返回`Optional<T>`：
+
+```java
+public Optional<String> readFromFile(String file) {
+    if (!fileExist(file)) {
+        return Optional.empty();
+    }
+    ...
+}
+```
+
+这样调用方必须通过`Optional.isPresent()`判断是否有结果。
+
+##### 10.5.2 定位NullPointerException
+
+如果产生了`NullPointerException`，例如，调用`a.b.c.x()`时产生了`NullPointerException`，原因可能是：
+
+- `a`是`null`；
+- `a.b`是`null`；
+- `a.b.c`是`null`；
+
+从Java 14开始，如果产生了`NullPointerException`，JVM可以给出详细的信息告诉我们`null`对象到底是谁。
+
+##### 10.5.3 小结
+
+`NullPointerException`是Java代码常见的逻辑错误，应当早暴露，早修复；
+
+可以启用Java 14的增强异常信息来查看`NullPointerException`的详细错误信息。
+
+#### 10.6 使用断言
+
+断言（Assertion）是一种调试程序的方式。在Java中，使用`assert`关键字来实现断言。
+
+##### 10.6.1 使用
+
+语句`assert x >= 0;`即为断言，断言条件`x >= 0`预期为`true`。如果计算结果为`false`，则断言失败，抛出`AssertionError`。
+
+使用`assert`语句时，还可以添加一个可选的断言消息：
+
+```java
+assert x >= 0 : "x must >= 0";
+```
+
+对于可恢复的程序错误，不应该使用断言，应该抛出异常并在上层捕获。
+
+JVM默认关闭断言指令，即遇到`assert`语句就自动忽略了，不执行。
+
+要执行`assert`语句，必须给Java虚拟机传递`-enableassertions`（可简写为`-ea`）参数启用断言。
+
+实际开发中，很少使用断言。更好的方法是编写单元测试，后续我们会讲解`JUnit`的使用。
+
+##### 10.6.2 小结
+
+断言是一种调试方式，断言失败会抛出`AssertionError`，只能在开发和测试阶段启用断言；
+
+对可恢复的错误不能使用断言，而应该抛出异常；
+
+断言很少被使用，更好的方法是编写单元测试。
+
+#### 10.7 使用JDK Logging
+
+使用日志取代`System.out.println()`。
+
+好处：
+
+1. 可以设置输出样式，避免自己每次都写`"ERROR: " + var`；
+2. 可以设置输出级别，禁止某些级别输出。例如，只输出错误日志；
+3. 可以被重定向到文件，这样可以在程序运行结束后查看日志；
+4. 可以按包名控制日志级别，只输出某些包打的日志......
+
+##### 10.7.1 java.util.logging
+
+Java标准库内置了日志包`java.util.logging`，我们可以直接用。
+
+```java
+// logging
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class Hello {
+    public static void main(String[] args) {
+        Logger logger = Logger.getGlobal();
+        logger.info("start process...");
+        logger.warning("memory is running out...");
+        logger.fine("ignored.");
+        logger.severe("process will be terminated...");
+    }
+}
+```
+
+运行上述代码，得到类似如下的输出：
+
+```plain
+Mar 02, 2019 6:32:13 PM Hello main
+INFO: start process...
+Mar 02, 2019 6:32:13 PM Hello main
+WARNING: memory is running out...
+Mar 02, 2019 6:32:13 PM Hello main
+SEVERE: process will be terminated...
+```
+
+对比可见，使用日志最大的好处是，它自动打印了时间、调用类、调用方法等很多有用的信息。
+
+再仔细观察发现，4条日志，只打印了3条，`logger.fine()`没有打印。这是因为，日志的输出可以设定级别。JDK的Logging定义了7个日志级别，从严重到普通：
+
+- SEVERE
+- WARNING
+- INFO
+- CONFIG
+- FINE
+- FINER
+- FINEST
+
+因为默认级别是INFO，因此，INFO级别以下的日志，不会被打印出来。使用日志级别的好处在于，调整级别，就可以屏蔽掉很多调试相关的日志输出。
+
+使用Java标准库内置的Logging有以下局限：
+
+Logging系统在JVM启动时读取配置文件并完成初始化，一旦开始运行`main()`方法，就无法修改配置；
+
+配置不太方便，需要在JVM启动时传递参数`-Djava.util.logging.config.file=<config-file-name>`。
+
+因此，Java标准库内置的Logging使用并不是非常广泛。更方便的日志系统我们稍后介绍。
+
+##### 10.7.2 小结
+
+日志是为了替代`System.out.println()`，可以定义格式，重定向到文件等；
+
+日志可以存档，便于追踪问题；
+
+日志记录可以按级别分类，便于打开或关闭某些级别；
+
+可以根据配置文件调整日志，无需修改代码；
+
+Java标准库提供了`java.util.logging`来实现日志功能。
+
+#### 10.8 使用Commons Logging
+
+Commons Logging是一个第三方日志库，它是由Apache创建的日志模块。
+
+Commons Logging的特色是，它可以挂接不同的日志系统，并通过配置文件指定挂接的日志系统。默认情况下，Commons Loggin自动搜索并使用Log4j（Log4j是另一个流行的日志系统），如果没有找到Log4j，再使用JDK Logging。
+
+##### 10.8.1 导入包
+
+使用eclipse可以直接将jar包拖到src目录里，然后右键Build Path>Add to Build Path，这样可以直接import进来，不用自定义cp。
+
+##### 10.8.2 使用
+
+Commons Logging定义了6个日志级别：
+
+- FATAL
+- ERROR
+- WARNING
+- INFO
+- DEBUG
+- TRACE
+
+默认级别是`INFO`。
+
+使用Commons Logging时，如果在静态方法中引用`Log`，通常直接定义一个静态类型变量：
+
+```java
+// 在静态方法中引用Log:
+public class Main {
+    static final Log log = LogFactory.getLog(Main.class);
+
+    static void foo() {
+        log.info("foo");
+    }
+}
+```
+
+在实例方法中引用`Log`，通常定义一个实例变量：
+
+```java
+// 在实例方法中引用Log:
+public class Person {
+    protected final Log log = LogFactory.getLog(getClass());
+
+    void foo() {
+        log.info("foo");
+    }
+}
+```
+
+注意到实例变量log的获取方式是`LogFactory.getLog(getClass())`，虽然也可以用`LogFactory.getLog(Person.class)`，但是前一种方式有个非常大的好处，就是子类可以直接使用该`log`实例。例如：
+
+```java
+// 在子类中使用父类实例化的log:
+public class Student extends Person {
+    void bar() {
+        log.info("bar");
+    }
+}
+```
+
+由于Java类的动态特性，子类获取的`log`字段实际上相当于`LogFactory.getLog(Student.class)`，但却是从父类继承而来，并且无需改动代码。
+
+此外，Commons Logging的日志方法，例如`info()`，除了标准的`info(String)`外，还提供了一个非常有用的重载方法：`info(String, Throwable)`，这使得记录异常更加简单：
+
+```java
+try {
+    ...
+} catch (Exception e) {
+    log.error("got exception!", e);
+}
+```
+
+##### 10.8.3 小结
+
+Commons Logging是使用最广泛的日志模块；
+
+Commons Logging的API非常简单；
+
+Commons Logging可以自动检测并使用其他日志模块。
+
+#### 10.9 使用Log4j
+
+Log4j是一个组件化设计的日志系统，它的架构大致如下：
+
+```
+log.info("User signed in.");
+ │
+ │   ┌──────────┐    ┌──────────┐    ┌──────────┐    	   
+ ├──▶│ Appender │───▶│  Filter  │───▶│  Layout  │───▶│ Console 
+ │   └──────────┘    └──────────┘    └──────────┘   
+ │
+ │   ┌──────────┐    ┌──────────┐    ┌──────────┐   
+ ├──▶│ Appender │───▶│  Filter  │───▶│  Layout  │───▶│   File 
+ │   └──────────┘    └──────────┘    └──────────┘    
+ │
+ │   ┌──────────┐    ┌──────────┐    ┌──────────┐    
+ └──▶│ Appender │───▶│  Filter  │───▶│  Layout  │───▶│  Socket 
+     └──────────┘    └──────────┘    └──────────┘   
+```
+
+当我们使用Log4j输出一条日志时，Log4j自动通过不同的Appender把同一条日志输出到不同的目的地。例如：
+
+- console：输出到屏幕；
+- file：输出到文件；
+- socket：通过网络输出到远程计算机；
+- jdbc：输出到数据库
+
+在输出日志的过程中，通过Filter来过滤哪些log需要被输出，哪些log不需要被输出。例如，仅输出`ERROR`级别的日志。
+
+最后，通过Layout来格式化日志信息，例如，自动添加日期、时间、方法名称等信息。
+
+上述结构虽然复杂，但我们在实际使用的时候，并不需要关心Log4j的API，而是通过配置文件来配置它。
+
+##### 10.9.1 XML配置
+
+使用Log4j的时候，我们把一个`log4j2.xml`的文件放到`classpath`下就可以让Log4j读取配置文件并按照我们的配置来输出日志。下面是一个配置文件的例子：
+
+```xml
+虽然配置Log4j比较繁琐，但一旦配置完成，使用起来就非常方便。对上面的配置文件，凡是INFO级别的日志，会自动输出到屏幕，而ERROR级别的日志，不但会输出到屏幕，还会同时输出到文件。并且，一旦日志文件达到指定大小（1MB），Log4j就会自动切割新的日志文件，并最多保留10份。
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Properties>
+        <!-- 定义日志格式 -->
+		<Property name="log.pattern">%d{MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36}%n%msg%n%n</Property>
+        <!-- 定义文件名变量 -->
+		<Property name="file.err.filename">log/err.log</Property>
+		<Property name="file.err.pattern">log/err.%i.log.gz</Property>
+	</Properties>
+    <!-- 定义Appender，即目的地 -->
+	<Appenders>
+        <!-- 定义输出到屏幕 -->
+		<Console name="console" target="SYSTEM_OUT">
+            <!-- 日志格式引用上面定义的log.pattern -->
+			<PatternLayout pattern="${log.pattern}" />
+		</Console>
+        <!-- 定义输出到文件,文件名引用上面定义的file.err.filename -->
+		<RollingFile name="err" bufferedIO="true" fileName="${file.err.filename}" filePattern="${file.err.pattern}">
+			<PatternLayout pattern="${log.pattern}" />
+			<Policies>
+                <!-- 根据文件大小自动切割日志 -->
+				<SizeBasedTriggeringPolicy size="1 MB" />
+			</Policies>
+            <!-- 保留最近10份 -->
+			<DefaultRolloverStrategy max="10" />
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+            <!-- 对info级别的日志，输出到console -->
+			<AppenderRef ref="console" level="info" />
+            <!-- 对error级别的日志，输出到err，即上面定义的RollingFile -->
+			<AppenderRef ref="err" level="error" />
+		</Root>
+	</Loggers>
+</Configuration>
+```
+
+##### 10.9.2 使用
+
+有了配置文件还不够，因为Log4j也是一个第三方库，我们需要从[这里](https://logging.apache.org/log4j/2.x/download.html)下载Log4j，解压后，把以下3个jar包放到`classpath`中：
+
+- log4j-api-2.x.jar
+- log4j-core-2.x.jar
+- log4j-jcl-2.x.jar
+
+因为Commons Logging会自动发现并使用Log4j，所以，把上一节下载的`commons-logging-1.2.jar`也放到`classpath`中。
+
+要打印日志，只需要按Commons Logging的写法写，不需要改动任何代码，就可以得到Log4j的日志输出。
+
+在开发阶段，始终使用Commons Logging接口来写入日志，并且开发阶段无需引入Log4j。如果需要把日志写入文件，只需要把正确的配置文件和Log4j相关的jar包放入`classpath`，就可以自动把日志切换成使用Log4j写入，无需修改任何代码。
+
+​	步骤
+
+	编写java文件、xml文件
+	cmd目录
+	编译	javac -cp commons-logging-1.3.4.jar Main10使用Log4j.java
+	java -cp .;commons-logging-1.3.4.jar;log4j-api-2.24.2.jar;log4j-core-2.24.2.jar;log4j-jcl-2.24.2.jar;log4j2.xml Main10使用Log4j.java
+	//修改后重新编译
+##### 10.9.3 小结
+
+通过Commons Logging实现日志，不需要修改代码即可使用Log4j；
+
+使用Log4j只需要把log4j2.xml和相关jar放入classpath；
+
+如果要更换Log4j，只需要移除log4j2.xml和相关jar；
+
+只有扩展Log4j时，才需要引用Log4j的接口（例如，将日志加密写入数据库的功能，需要自己开发）。
+
+### 十一、反射
+
+反射就是Reflection，Java的反射是指程序在运行期可以拿到一个对象的所有信息。
+
+反射是为了解决在运行期，对某个实例一无所知的情况下，如何调用其方法。
+
+#### 11.1 Class类
+
+由于JVM为每个加载的`class`创建了对应的`Class`实例，并在实例中保存了该`class`的所有信息，包括类名、包名、父类、实现的接口、所有方法、字段等，因此，如果获取了某个`Class`实例，我们就可以通过这个`Class`实例获取到该实例对应的`class`的所有信息。
+
+这种通过`Class`实例获取`class`信息的方法称为反射（Reflection）。
+
+##### 11.1.1 获取`class`的`Class`实例
+
+1.直接通过一个`class`的静态变量`class`获取：
+
+```java
+Class cls = String.class;
+```
+
+2.通过实例变量提供的`getClass()`方法获取：
+
+```java
+String s = "Hello";
+Class cls = s.getClass();
+```
+
+3.`class`的完整类名，可以通过静态方法`Class.forName()`获取：
+
+```java
+Class cls = Class.forName("java.lang.String");
+```
+
+因为反射的目的是为了获得某个实例的信息。因此，当我们拿到某个`Object`实例时，我们可以通过反射获取该`Object`的`class`信息。
+
+##### 11.1.2 动态加载
+
+JVM在执行Java程序的时候，并不是一次性把所有用到的class全部加载到内存，而是第一次需要用到class时才加载。
+
+动态加载`class`的特性对于Java程序非常重要。利用JVM动态加载`class`的特性，我们才能在运行期根据条件加载不同的实现类。
+
+##### 11.1.3 小结
+
+JVM为每个加载的`class`及`interface`创建了对应的`Class`实例来保存`class`及`interface`的所有信息；
+
+获取一个`class`对应的`Class`实例后，就可以获取该`class`的所有信息；
+
+通过Class实例获取`class`信息的方法称为反射（Reflection）；
+
+JVM总是动态加载`class`，可以在运行期根据条件来控制加载class。
+
+#### 11.2 访问字段
+
+##### 11.2.1 通过`Class`实例获取字段信息
+
+- Field getField(name)：根据字段名获取某个public的field（包括父类）
+- Field getDeclaredField(name)：根据字段名获取当前类的某个field（不包括父类）
+- Field[] getFields()：获取所有public的field（包括父类）
+- Field[] getDeclaredFields()：获取当前类的所有field（不包括父类）
+
+一个`Field`对象包含了一个字段的所有信息：
+
+- `getName()`：返回字段名称，例如，`"name"`；
+- `getType()`：返回字段类型，也是一个`Class`实例，例如，`String.class`；
+- `getModifiers()`：返回字段的修饰符，它是一个`int`，不同的bit表示不同的含义。
+
+##### 11.2.2 获取字段值
+
+利用反射拿到字段的一个`Field`实例只是第一步，我们还可以拿到一个实例对应的该字段的值。
+
+例如，对于一个`Person`实例，我们可以先拿到`name`字段对应的`Field`，再获取这个实例的`name`字段的值：
+
+```java
+Object p = new Person("Xiao Ming");
+Class c = p.getClass();
+Field f = c.getDeclaredField("name");
+f.setAccessible(true);//使用反射可以获取private字段的值
+// private String name;
+Object value = f.get(p);
+System.out.println(value); // "Xiao Ming"
+f.set(p, "Xiao Hong");
+System.out.println(value); // "Xiao Hong"
+```
+
+##### 11.2.3 设置字段值
+
+```java
+f.set(p, "Xiao Hong");
+```
+
+##### 11.2.4 小结
+
+Java的反射API提供的`Field`类封装了字段的所有信息：
+
+通过`Class`实例的方法可以获取`Field`实例：`getField()`，`getFields()`，`getDeclaredField()`，`getDeclaredFields()`；
+
+通过Field实例可以获取字段信息：`getName()`，`getType()`，`getModifiers()`；
+
+通过Field实例可以读取或设置某个对象的字段，如果存在访问限制，要首先调用`setAccessible(true)`来访问非`public`字段。
+
+通过反射读写字段是一种非常规方法，它会破坏对象的封装。
+
+#### 11.3 调用方法
+
+##### 11.3.1 通过`Class`实例获取`Method`信息
+
+- `Method getMethod(name, Class...)`：获取某个`public`的`Method`（包括父类）
+- `Method getDeclaredMethod(name, Class...)`：获取当前类的某个`Method`（不包括父类）
+- `Method[] getMethods()`：获取所有`public`的`Method`（包括父类）
+- `Method[] getDeclaredMethods()`：获取当前类的所有`Method`（不包括父类）
+
+一个`Method`对象包含一个方法的所有信息：
+
+- `getName()`：返回方法名称，例如：`"getScore"`；
+- `getReturnType()`：返回方法返回值类型，也是一个Class实例，例如：`String.class`；
+- `getParameterTypes()`：返回方法的参数类型，是一个Class数组，例如：`{String.class, int.class}`；
+- `getModifiers()`：返回方法的修饰符，它是一个`int`，不同的bit表示不同的含义。
+
+##### 11.3.2 调用方法
+
+获取到一个`Method`对象时，就可以对它进行调用。
+
+```java
+// String对象:
+String s = "Hello world";
+// 获取String substring(int)方法，参数为int:
+Method m = String.class.getMethod("substring", int.class);
+// 在s对象上调用该方法并获取结果:
+String r = (String) m.invoke(s, 6);
+// 打印调用结果:
+System.out.println(r); // "world"
+```
+
+对`Method`实例调用`invoke`就相当于调用该方法，`invoke`的第一个参数是对象实例，即在哪个实例上调用该方法，后面的可变参数要与方法参数一致，否则将报错。
+
+##### 11.3.3 调用静态方法
+
+如果获取到的Method表示一个静态方法，调用静态方法时，由于无需指定实例对象，所以`invoke`方法传入的第一个参数永远为`null`。我们以`Integer.parseInt(String)`为例：
+
+```java
+// 获取Integer.parseInt(String)方法，参数为String:
+Method m = Integer.class.getMethod("parseInt", String.class);
+// 调用该静态方法并获取结果:
+Integer n = (Integer) m.invoke(null, "12345");
+// 打印调用结果:
+System.out.println(n);
+```
+
+##### 11.3.4 调用非public方法
+
+和Field类似，对于非public方法，我们虽然可以通过`Class.getDeclaredMethod()`获取该方法实例，但直接对其调用将得到一个`IllegalAccessException`。为了调用非public方法，我们通过`Method.setAccessible(true)`允许其调用
+
+##### 11.3.5 多态
+
+使用反射调用方法时，仍然遵循多态原则：即总是调用实际类型的覆写方法（如果存在）。
+
+```java
+Method m = Person.class.getMethod("hello");
+m.invoke(new Student());
+```
+
+实际上相当于：
+
+```java
+Person p = new Student();
+p.hello();
+```
+
+##### 11.3.6 小结
+
+Java的反射API提供的Method对象封装了方法的所有信息：
+
+通过`Class`实例的方法可以获取`Method`实例：`getMethod()`，`getMethods()`，`getDeclaredMethod()`，`getDeclaredMethods()`；
+
+通过`Method`实例可以获取方法信息：`getName()`，`getReturnType()`，`getParameterTypes()`，`getModifiers()`；
+
+通过`Method`实例可以调用某个对象的方法：`Object invoke(Object instance, Object... parameters)`；
+
+通过设置`setAccessible(true)`来访问非`public`方法；
+
+通过反射调用方法时，仍然遵循多态原则。
+
+#### 11.4 调用构造方法
+
+可以通过反射来创建新的实例，调用Class提供的newInstance()方法：
+
+```java
+Person p = Person.class.newInstance();
+```
+
+局限：只能调用该类的public无参数构造方法。
+
+##### 11.4.1 Constructor对象
+
+为了调用任意的构造方法，Java的反射API提供了`Constructor`对象，它包含一个构造方法的所有信息，可以创建一个实例。`Constructor`对象和Method非常类似，不同之处仅在于它是一个构造方法，并且，调用结果总是返回实例：
+
+```java
+Constructor cons2 = Integer.class.getConstructor(String.class);
+Integer n2 = (Integer) cons2.newInstance("456");
+System.out.println(n2);
+```
+
+通过Class实例获取Constructor的方法如下：
+
+- `getConstructor(Class...)`：获取某个`public`的`Constructor`；
+- `getDeclaredConstructor(Class...)`：获取某个`Constructor`；
+- `getConstructors()`：获取所有`public`的`Constructor`；
+- `getDeclaredConstructors()`：获取所有`Constructor`。
+
+注意`Constructor`总是当前类定义的构造方法，和父类无关，因此不存在多态的问题。
+
+调用非`public`的`Constructor`时，必须首先通过`setAccessible(true)`设置允许访问。`setAccessible(true)`可能会失败。
+
+##### 11.4.2 小结
+
+`Constructor`对象封装了构造方法的所有信息；
+
+通过`Class`实例的方法可以获取`Constructor`实例：`getConstructor()`，`getConstructors()`，`getDeclaredConstructor()`，`getDeclaredConstructors()`；
+
+通过`Constructor`实例可以创建一个实例对象：`newInstance(Object... parameters)`； 通过设置`setAccessible(true)`来访问非`public`构造方法。
+
+#### 11.5 获取继承关系
+
+当我们获取到某个`Class`对象时，实际上就获取到了一个类的类型：
+
+```java
+Class cls = String.class; // 获取到String的Class
+```
+
+还可以用实例的`getClass()`方法获取：
+
+```java
+String s = "";
+Class cls = s.getClass(); // s是String，因此获取到String的Class
+```
+
+最后一种获取`Class`的方法是通过`Class.forName("")`，传入`Class`的完整类名获取：
+
+```java
+Class s = Class.forName("java.lang.String");
+```
+
+这三种方式获取的`Class`实例都是同一个实例，因为JVM对每个加载的`Class`只创建一个`Class`实例来表示它的类型。
+
+##### 11.5.1 获取父类的Class
+
+有了`Class`实例，我们还可以获取它的父类的`Class`：
+
+```java
+Class i = Integer.class;
+Class n = i.getSuperclass();
+Class o = n.getSuperclass();
+```
+
+除`Object`外，其他任何非`interface`的`Class`都必定存在一个父类类型。
+
+##### 11.5.2 获取interface
+
+由于一个类可能实现一个或多个接口，通过`Class`我们就可以查询到实现的接口类型。
+
+```java
+Class s = Integer.class;
+Class[] is = s.getInterfaces();
+for (Class i : is) {
+    System.out.println(i);
+}
+```
+
+要特别注意：`getInterfaces()`只返回当前类直接实现的接口类型，并不包括其父类实现的接口类型。
+
+此外，对所有`interface`的`Class`调用`getSuperclass()`返回的是`null`，获取接口的父接口要用`getInterfaces()`：
+
+```java
+System.out.println(java.io.DataInputStream.class.getSuperclass()); // java.io.FilterInputStream，因为DataInputStream继承自FilterInputStream
+System.out.println(java.io.Closeable.class.getSuperclass()); // null，对接口调用getSuperclass()总是返回null，获取接口的父接口要用getInterfaces()
+```
+
+如果一个类没有实现任何`interface`，那么`getInterfaces()`返回空数组。
+
+##### 11.5.3 继承关系
+
+当我们判断一个实例是否是某个类型时，正常情况下，使用`instanceof`操作符。
+
+如果是两个`Class`实例，要判断一个向上转型是否成立，可以调用`isAssignableFrom()`。
+
+##### 11.5.4 小结
+
+通过`Class`对象可以获取继承关系：
+
+- `Class getSuperclass()`：获取父类类型；
+- `Class[] getInterfaces()`：获取当前类实现的所有接口。
+
+通过`Class`对象的`isAssignableFrom()`方法可以判断一个向上转型是否可以实现。
+
+#### 11.6 动态代理
+
+我们来比较Java的`class`和`interface`的区别：
+
+- 可以实例化`class`（非`abstract`）；
+- 不能实例化`interface`。
+
+所有`interface`类型的变量总是通过某个实例向上转型并赋值给接口类型变量的：
+
+```java
+CharSequence cs = new StringBuilder();
+```
+
+有没有可能不编写实现类，直接在运行期创建某个`interface`的实例呢？
+
+这是可能的，因为Java标准库提供了一种动态代理（Dynamic Proxy）的机制：可以在运行期动态创建某个`interface`的实例。
+
+什么叫运行期动态创建？听起来好像很复杂。所谓动态代理，是和静态相对应的。我们来看静态代码怎么写：
+
+定义接口：
+
+```java
+public interface Hello {
+    void morning(String name);
+}
+```
+
+编写实现类：
+
+```java
+public class HelloWorld implements Hello {
+    public void morning(String name) {
+        System.out.println("Good morning, " + name);
+    }
+}
+```
+
+创建实例，转型为接口并调用：
+
+```java
+Hello hello = new HelloWorld();
+hello.morning("Bob");
+```
+
+这种方式就是我们通常编写代码的方式。
+
+##### 11.6.1 动态代理
+
+还有一种方式是动态代码，我们仍然先定义了接口`Hello`，但是我们并不去编写实现类，而是直接通过JDK提供的一个`Proxy.newProxyInstance()`创建了一个`Hello`接口对象。这种没有实现类但是在运行期动态创建了一个接口对象的方式，我们称为动态代码。JDK提供的动态创建接口对象的方式，就叫动态代理。
+
+一个最简单的动态代理实现如下：
+
+```java
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class Main {
+    public static void main(String[] args) {
+        InvocationHandler handler = new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                System.out.println(method);
+                if (method.getName().equals("morning")) {
+                    System.out.println("Good morning, " + args[0]);
+                }
+                return null;
+            }
+        };
+        Hello hello = (Hello) Proxy.newProxyInstance(
+            Hello.class.getClassLoader(), // 传入ClassLoader
+            new Class[] { Hello.class }, // 传入要实现的接口
+            handler); // 传入处理调用方法的InvocationHandler
+        hello.morning("Bob");
+    }
+}
+
+interface Hello {
+    void morning(String name);
+}
+```
+
+在运行期动态创建一个`interface`实例的方法如下：
+
+1. 定义一个`InvocationHandler`实例，它负责实现接口的方法调用；
+2. 通过`Proxy.newProxyInstance()`创建`interface`实例，它需要3个参数：
+   1. 使用的`ClassLoader`，通常就是接口类的`ClassLoader`；
+   2. 需要实现的接口数组，至少需要传入一个接口进去；
+   3. 用来处理接口方法调用的`InvocationHandler`实例。
+3. 将返回的`Object`强制转型为接口。
+
+动态代理实际上是JVM在运行期动态创建class字节码并加载的过程，它并没有什么黑魔法，把上面的动态代理改写为静态实现类大概长这样：
+
+```java
+public class HelloDynamicProxy implements Hello {
+    InvocationHandler handler;
+    public HelloDynamicProxy(InvocationHandler handler) {
+        this.handler = handler;
+    }
+    public void morning(String name) {
+        handler.invoke(
+           this,
+           Hello.class.getMethod("morning", String.class),
+           new Object[] { name }
+        );
+    }
+}
+```
+
+其实就是JVM帮我们自动编写了一个上述类（不需要源码，可以直接生成字节码），并不存在可以直接实例化接口的黑魔法。
+
+##### 11.6.2 小结
+
+Java标准库提供了动态代理功能，允许在运行期动态创建一个接口的实例；
+
+动态代理是通过`Proxy`创建代理对象，然后将接口方法“代理”给`InvocationHandler`完成的。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,9 @@
+12-05 21:24:18.734 [main] ERROR Exception.Main10使用Log4j
+error1
+
+12-05 21:48:41.401 [main] FATAL Exception.Main10使用Log4j
+fatal
+
+12-05 21:48:41.405 [main] ERROR Exception.Main10使用Log4j
+error
+

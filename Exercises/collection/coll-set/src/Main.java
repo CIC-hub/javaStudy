@@ -24,19 +24,22 @@ public class Main {
       // TODO: 按sequence去除重复消息
 	TreeSet<Message> set = new TreeSet<>(new Comparator<Message>() {
 		public int compare(Message m1,Message m2) {
-			return m1.sequence>m2.sequence ? -1 : 1;
+//			if(m1.sequence == m2.sequence) {
+//				return 0;
+//			}
+//			return m1.sequence>m2.sequence ? 1 : -1;
+			return Integer.compare(m1.sequence, m2.sequence);
 		}
 	});
 	
   	for(Message message:received) {
   		set.add(message);
   	}
-//  	List<Message> received2 = new ArrayList<Message>();;
-//  	int i=1;
-//  	for(Message s:set) {
-//  		received2.add(s);
-//  	}
-  	return set;
+  	List<Message> received2 = new ArrayList<Message>();;
+  	for(Message s:set) {
+  		received2.add(s);
+  	}
+  	return received2;
   }
 }
 
