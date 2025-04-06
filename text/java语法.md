@@ -5280,43 +5280,542 @@ Java的泛型是采用擦拭法实现的；
 
 子类可以获取父类的泛型类型`<T>`。
 
+#### 9.5 extends通配符
 
+##### 9.5.1 使用场景
 
+```java
+public static void main(String[] args) {
+        Pair<Integer> p = new Pair<>(123, 456);
+        int n = add(p);
+        System.out.println(n);
+    }
 
+    static int add(Pair<Number> p) {
+        Number first = p.getFirst();
+        Number last = p.getLast();
+        return first.intValue() + last.intValue();
+    }
+```
 
+编译错误，因为`Pair<Integer>`不是`Pair<Number>`的子类。
 
+使用`Pair<? extends Number>`使得方法接收所有泛型类型为`Number`或`Number`子类的`Pair`类型。
 
+```java
+ public static void main(String[] args) {
+        Pair<Integer> p = new Pair<>(123, 456);
+        int n = add(p);
+        System.out.println(n);
+    }
 
+    static int add(Pair<? extends Number> p) {
+        Number first = p.getFirst();
+        Number last = p.getLast();
+        return first.intValue() + last.intValue();
+    }
+}
+```
 
+使用`<? extends Number>`的泛型定义称之为上界通配符（Upper Bounds Wildcards），即把泛型类型`T`的上界限定在`Number`了。
 
+除了可以传入`Pair<Integer>`类型，我们还可以传入`Pair<Double>`类型，`Pair<BigDecimal>`类型等等，因为`Double`和`BigDecimal`都是`Number`的子类。
 
+##### 9.5.2 局限
 
+对`Pair<? extends Number>`类型调用`getFirst()`方法，实际的方法签名变成了：
 
+```java
+<? extends Number> getFirst();
+```
 
+即返回值是`Number`或`Number`的子类，因此，可以安全赋值给`Number`类型的变量：
 
+```java
+Number x = p.getFirst();
+```
 
+然后，我们不可预测实际类型就是`Integer`，例如，下面的代码是无法通过编译的：
 
+```java
+Integer x = p.getFirst();
+```
 
+这是因为实际的返回类型可能是`Integer`，也可能是`Double`或者其他类型，编译器只能确定类型一定是`Number`的子类（包括`Number`类型本身），但具体类型无法确定。
 
+我们再来考察一下`Pair<T>`的`set`方法：
 
+```java
+    public static void main(String[] args) {
+        Pair<Integer> p = new Pair<>(123, 456);
+        int n = add(p);
+        System.out.println(n);
+    }
 
+    static int add(Pair<? extends Number> p) {
+        Number first = p.getFirst();
+        Number last = p.getLast();
+        p.setFirst(new Integer(first.intValue() + 100));
+        p.setLast(new Integer(last.intValue() + 100));
+        return p.getFirst().intValue() + p.getLast().intValue();
+    }
+```
 
+编译错误发生在`p.setFirst()`传入的参数是`Integer`类型。有些童鞋会问了，既然`p`的定义是`Pair<? extends Number>`，那么`setFirst(? extends Number)`为什么不能传入`Integer`？
 
+原因还在于擦拭法。如果我们传入的`p`是`Pair<Double>`，显然它满足参数定义`Pair<? extends Number>`，然而，`Pair<Double>`的`setFirst()`显然无法接受`Integer`类型。
 
+这就是`<? extends Number>`通配符的一个重要限制：方法参数签名`setFirst(? extends Number)`无法传递任何`Number`的子类型给`setFirst(? extends Number)`。
 
+这里唯一的例外是可以给方法参数传入`null`：
 
+```java
+p.setFirst(null); // ok, 但是后面会抛出NullPointerException
+p.getFirst().intValue(); // NullPointerException
+```
 
+##### 9.5.3 作用
 
+Java标准库的`java.util.List<T>`接口，它实现的是一个类似“可变数组”的列表
 
+主要功能包括：
 
+```java
+public interface List<T> {
+    int size(); // 获取个数
+    T get(int index); // 根据索引获取指定元素
+    void add(T t); // 添加一个新元素
+    void remove(T t); // 删除一个已有元素
+}
+```
 
+定义一个方法来处理列表的每个元素：
 
+```java
+int sumOfList(List<? extends Integer> list) {
+    int sum = 0;
+    for (int i=0; i<list.size(); i++) {
+        Integer n = list.get(i);
+        sum = sum + n;
+    }
+    return sum;
+}
+```
 
+为什么我们定义的方法参数类型是`List<? extends Integer>`而不是`List<Integer>`？从方法内部代码看，传入`List<? extends Integer>`或者`List<Integer>`是完全一样的，但是，注意到`List<? extends Integer>`的限制：
 
+- 允许调用`get()`方法获取`Integer`的引用；
+- 不允许调用`set(? extends Integer)`方法并传入任何`Integer`的引用（`null`除外）。
 
+因此，方法参数类型`List<? extends Integer>`表明了该方法内部只会读取`List`的元素，不会修改`List`的元素（因为无法调用`add(? extends Integer)`、`remove(? extends Integer)`这些方法。换句话说，这是一个对参数`List<? extends Integer>`进行只读的方法（恶意调用`set(null)`除外）。
 
+##### 9.5.4 使用extends限定T类型
 
+在定义泛型类型`Pair<T>`的时候，也可以使用`extends`通配符来限定`T`的类型：
 
+```java
+public class Pair<T extends Number> { ... }
+```
+
+现在，我们只能定义：
+
+```java
+Pair<Number> p1 = null;
+Pair<Integer> p2 = new Pair<>(1, 2);
+Pair<Double> p3 = null;
+```
+
+因为`Number`、`Integer`和`Double`都符合`<T extends Number>`。
+
+非`Number`类型将无法通过编译：
+
+```java
+Pair<String> p1 = null; // compile error!
+Pair<Object> p2 = null; // compile error!
+```
+
+因为`String`、`Object`都不符合`<T extends Number>`，因为它们不是`Number`类型或`Number`的子类。
+
+##### 9.5.5 小结
+
+使用类似`<? extends Number>`通配符作为方法参数时表示：
+
+- 方法内部可以调用获取`Number`引用的方法，例如：`Number n = obj.getFirst();`；
+- 方法内部无法调用传入`Number`引用的方法（`null`除外），例如：`obj.setFirst(Number n);`。
+
+即一句话总结：使用`extends`通配符表示可以读，不能写。
+
+使用类似`<T extends Number>`定义泛型类时表示：
+
+- 泛型类型限定为`Number`以及`Number`的子类。
+
+#### 9.6 super通配符
+
+##### 9.6.1 使用场景
+
+`Pair<Integer>`不是`Pair<Number>`的子类。
+
+```java
+void set(Pair<Integer> p, Integer first, Integer last) {
+    p.setFirst(first);
+    p.setLast(last);
+}
+```
+
+传入`Pair<Integer>`是允许的，但是传入`Pair<Number>`是不允许的。
+
+和`extends`通配符相反，这次，我们希望接受`Pair<Integer>`类型，以及`Pair<Number>`、`Pair<Object>`，因为`Number`和`Object`是`Integer`的父类，`setFirst(Number)`和`setFirst(Object)`实际上允许接受`Integer`类型。
+
+我们使用`super`通配符来改写这个方法：
+
+```java
+void set(Pair<? super Integer> p, Integer first, Integer last) {
+    p.setFirst(first);
+    p.setLast(last);
+}
+```
+
+正常编译：
+
+```java
+public static void main(String[] args) {
+        Pair<Number> p1 = new Pair<>(12.3, 4.56);
+        Pair<Integer> p2 = new Pair<>(123, 456);
+        setSame(p1, 100);
+        setSame(p2, 200);
+        System.out.println(p1.getFirst()  + p1.getLast());
+        System.out.println(p2.getFirst()  + p2.getLast());
+    }
+
+    static void setSame(Pair<? super Integer> p, Integer n) {
+        p.setFirst(n);
+        p.setLast(n);
+    }
+}
+```
+
+考察`Pair<? super Integer>`的`setFirst()`方法，它的方法签名实际上是：
+
+```java
+void setFirst(? super Integer);
+```
+
+因此，可以安全地传入`Integer`类型。
+
+##### 9.6.2 局限
+
+考察`Pair<? super Integer>`的`getFirst()`方法，它的方法签名实际上是：
+
+```java
+? super Integer getFirst();
+```
+
+这里注意到我们无法使用`Integer`类型来接收`getFirst()`的返回值，即下面的语句将无法通过编译：
+
+```java
+Integer x = p.getFirst();
+```
+
+因为如果传入的实际类型是`Pair<Number>`，编译器无法将`Number`类型转型为`Integer`。
+
+注意：虽然`Number`是一个抽象类，我们无法直接实例化它。但是，即便`Number`不是抽象类，这里仍然无法通过编译。此外，传入`Pair<Object>`类型时，编译器也无法将`Object`类型转型为`Integer`。
+
+唯一可以接收`getFirst()`方法返回值的是`Object`类型：
+
+```java
+Object obj = p.getFirst();
+```
+
+因此，使用`<? super Integer>`通配符表示：
+
+- 允许调用`set(? super Integer)`方法传入`Integer`的引用；
+- 不允许调用`get()`方法获得`Integer`的引用。
+
+唯一例外是可以获取`Object`的引用：`Object o = p.getFirst()`。
+
+换句话说，使用`<? super Integer>`通配符作为方法参数，表示方法内部代码对于参数只能写，不能读。
+
+##### 9.6.3 对比extends和super通配符
+
+作为方法参数，`<? extends T>`类型和`<? super T>`类型的区别在于：
+
+- `<? extends T>`允许调用读方法`T get()`获取`T`的引用，但不允许调用写方法`set(T)`传入`T`的引用（传入`null`除外）；
+- `<? super T>`允许调用写方法`set(T)`传入`T`的引用，但不允许调用读方法`T get()`获取`T`的引用（获取`Object`除外）。
+
+一个是允许读不允许写，另一个是允许写不允许读。
+
+Java标准库的`Collections`类定义的`copy()`方法：
+
+```java
+public class Collections {
+    // 把src的每个元素复制到dest中:
+    public static <T> void copy(List<? super T> dest, List<? extends T> src) {
+        for (int i=0; i<src.size(); i++) {
+            T t = src.get(i);
+            dest.add(t);
+        }
+    }
+}
+```
+
+它的作用是把一个`List`的每个元素依次添加到另一个`List`中。它的第一个参数是`List<? super T>`，表示目标`List`，第二个参数`List<? extends T>`，表示要复制的`List`。我们可以简单地用`for`循环实现复制。在`for`循环中，我们可以看到，对于类型`<? extends T>`的变量`src`，我们可以安全地获取类型`T`的引用，而对于类型`<? super T>`的变量`dest`，我们可以安全地传入`T`的引用。
+
+这个`copy()`方法的定义就完美地展示了`extends`和`super`的意图：
+
+- `copy()`方法内部不会读取`dest`，因为不能调用`dest.get()`来获取`T`的引用；
+- `copy()`方法内部也不会修改`src`，因为不能调用`src.add(T)`。
+
+这个`copy()`方法的另一个好处是可以安全地把一个`List<Integer>`添加到`List<Number>`，但是无法反过来添加：
+
+```java
+// copy List<Integer> to List<Number> ok:
+List<Number> numList = ...;
+List<Integer> intList = ...;
+Collections.copy(numList, intList);
+
+// ERROR: cannot copy List<Number> to List<Integer>:
+Collections.copy(intList, numList);
+```
+
+##### 9.6.4 PECS原则
+
+何时使用`extends`，何时使用`super`？为了便于记忆，我们可以用PECS原则：Producer Extends Consumer Super。
+
+即：如果需要返回`T`，它是生产者（Producer），要使用`extends`通配符；如果需要写入`T`，它是消费者（Consumer），要使用`super`通配符。
+
+还是以`Collections`的`copy()`方法为例：
+
+```java
+public class Collections {
+    public static <T> void copy(List<? super T> dest, List<? extends T> src) {
+        for (int i=0; i<src.size(); i++) {
+            T t = src.get(i); // src是producer
+            dest.add(t); // dest是consumer
+        }
+    }
+}
+```
+
+需要返回`T`的`src`是生产者，因此声明为`List<? extends T>`，需要写入`T`的`dest`是消费者，因此声明为`List<? super T>`。
+
+##### 9.6.5 无限定通配符
+
+```java
+void sample(Pair<?> p) {
+}
+```
+
+因为`<?>`通配符既没有`extends`，也没有`super`，因此：
+
+- 不允许调用`set(T)`方法并传入引用（`null`除外）；
+- 不允许调用`T get()`方法并获取`T`引用（只能获取`Object`引用）。
+
+换句话说，既不能读，也不能写，那只能做一些`null`判断：
+
+```java
+static boolean isNull(Pair<?> p) {
+    return p.getFirst() == null || p.getLast() == null;
+}
+```
+
+大多数情况下，可以引入泛型参数`<T>`消除`<?>`通配符：
+
+```java
+static <T> boolean isNull(Pair<T> p) {
+    return p.getFirst() == null || p.getLast() == null;
+}
+```
+
+`<?>`通配符有一个独特的特点，就是：`Pair<?>`是所有`Pair<T>`的超类：
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Pair<Integer> p = new Pair<>(123, 456);
+        Pair<?> p2 = p; // 安全地向上转型
+        System.out.println(p2.getFirst() + ", " + p2.getLast());
+    }
+}
+```
+
+上述代码是可以正常编译运行的，因为`Pair<Integer>`是`Pair<?>`的子类，可以安全地向上转型。
+
+##### 9.6.6  小结
+
+使用类似`<? super Integer>`通配符作为方法参数时表示：
+
+- 方法内部可以调用传入`Integer`引用的方法，例如：`obj.setFirst(Integer n);`；
+- 方法内部无法调用获取`Integer`引用的方法（`Object`除外），例如：`Integer n = obj.getFirst();`。
+
+即使用`super`通配符表示只能写不能读。
+
+使用`extends`和`super`通配符要遵循PECS原则。
+
+无限定通配符`<?>`很少使用，可以用`<T>`替换，同时它是所有`<T>`类型的超类。
+
+#### 9.7 泛型和反射
+
+Java的部分反射API也是泛型。例如：`Class<T>`就是泛型：
+
+```java
+// compile warning:
+Class clazz = String.class;
+String str = (String) clazz.newInstance();
+
+// no warning:
+Class<String> clazz = String.class;
+String str = clazz.newInstance();
+```
+
+调用`Class`的`getSuperclass()`方法返回的`Class`类型是`Class<? super T>`：
+
+```java
+Class<? super String> sup = String.class.getSuperclass();
+```
+
+构造方法`Constructor<T>`也是泛型：
+
+```java
+Class<Integer> clazz = Integer.class;
+Constructor<Integer> cons = clazz.getConstructor(int.class);
+Integer i = cons.newInstance(123);
+```
+
+我们可以声明带泛型的数组，但不能用`new`操作符创建带泛型的数组：
+
+```java
+Pair<String>[] ps = null; // ok
+Pair<String>[] ps = new Pair<String>[2]; // compile error!
+```
+
+必须通过强制转型实现带泛型的数组：
+
+```java
+@SuppressWarnings("unchecked")
+Pair<String>[] ps = (Pair<String>[]) new Pair[2];
+```
+
+使用泛型数组要特别小心，因为数组实际上在运行期没有泛型，编译器可以强制检查变量`ps`，因为它的类型是泛型数组。但是，编译器不会检查变量`arr`，因为它不是泛型数组。因为这两个变量实际上指向同一个数组，所以，操作`arr`可能导致从`ps`获取元素时报错，例如，以下代码演示了不安全地使用带泛型的数组：
+
+```java
+Pair[] arr = new Pair[2];
+Pair<String>[] ps = (Pair<String>[]) arr;
+
+ps[0] = new Pair<String>("a", "b");
+arr[1] = new Pair<Integer>(1, 2);
+
+// ClassCastException:
+Pair<String> p = ps[1];
+String s = p.getFirst();
+```
+
+要安全地使用泛型数组，必须扔掉`arr`的引用：
+
+```java
+@SuppressWarnings("unchecked")
+Pair<String>[] ps = (Pair<String>[]) new Pair[2];
+```
+
+上面的代码中，由于拿不到原始数组的引用，就只能对泛型数组`ps`进行操作，这种操作就是安全的。
+
+带泛型的数组实际上是编译器的类型擦除：
+
+```java
+Pair[] arr = new Pair[2];
+Pair<String>[] ps = (Pair<String>[]) arr;
+
+System.out.println(ps.getClass() == Pair[].class); // true
+
+String s1 = (String) arr[0].getFirst();
+String s2 = ps[0].getFirst();
+```
+
+所以我们不能直接创建泛型数组`T[]`，因为擦拭后代码变为`Object[]`：
+
+```java
+// compile error:
+public class Abc<T> {
+    T[] createArray() {
+        return new T[5];
+    }
+}
+```
+
+必须借助`Class<T>`来创建泛型数组：
+
+```java
+T[] createArray(Class<T> cls) {
+    return (T[]) Array.newInstance(cls, 5);
+}
+```
+
+我们还可以利用可变参数创建泛型数组`T[]`：
+
+```java
+public class ArrayHelper {
+    @SafeVarargs
+    static <T> T[] asArray(T... objs) {
+        return objs;
+    }
+}
+
+String[] ss = ArrayHelper.asArray("a", "b", "c");
+Integer[] ns = ArrayHelper.asArray(1, 2, 3);
+```
+
+##### 9.7.1 谨慎使用泛型可变参数
+
+在上面的例子中，我们看到，通过：
+
+```java
+static <T> T[] asArray(T... objs) {
+    return objs;
+}
+```
+
+似乎可以安全地创建一个泛型数组。但实际上，这种方法非常危险。以下代码来自《Effective Java》的示例：
+
+```java
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+        String[] arr = asArray("one", "two", "three");
+        System.out.println(Arrays.toString(arr));
+        // ClassCastException:
+        String[] firstTwo = pickTwo("one", "two", "three");
+        System.out.println(Arrays.toString(firstTwo));
+    }
+
+    static <K> K[] pickTwo(K k1, K k2, K k3) {
+        return asArray(k1, k2);
+    }
+
+    static <T> T[] asArray(T... objs) {
+        return objs;
+    }
+}
+```
+
+直接调用`asArray(T...)`似乎没有问题，但是在另一个方法中，我们返回一个泛型数组就会产生`ClassCastException`，原因还是因为擦拭法，在`pickTwo()`方法内部，编译器无法检测`K[]`的正确类型，因此返回了`Object[]`。
+
+如果仔细观察，可以发现编译器对所有可变泛型参数都会发出警告，除非确认完全没有问题，才可以用`@SafeVarargs`消除警告。
+
+ 注意
+
+如果在方法内部创建了泛型数组，最好不要将它返回给外部使用。
+
+更详细的解释请参考《[Effective Java](https://www.oreilly.com/library/view/effective-java-3rd/9780134686097/)》“Item 32: Combine generics and varargs judiciously”。
+
+##### 9.7.2小结
+
+部分反射API是泛型，例如：`Class<T>`，`Constructor<T>`；
+
+可以声明带泛型的数组，但不能直接创建带泛型的数组，必须强制转型；
+
+可以通过`Array.newInstance(Class<T>, int)`创建`T[]`数组，需要强制转型；
+
+同时使用泛型和可变参数时需要特别小心。
 
 ### 十、异常处理
 
