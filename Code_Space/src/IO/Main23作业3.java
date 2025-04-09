@@ -14,6 +14,7 @@ public class Main23作业3 {
 	 * color= red
 	 * (2)编写Dog类(name,age,color)创建一个dog对象，
 	 * 读取dog.properties 用相应的内容完成属性初始化,并输出
+	 * (3)将创建的Dog对象，序列化到文件dog.dat文件中
 	 */
 		String filePath = "e:\\hw\\dog.properties";
 		Properties p1 = new Properties();
@@ -33,6 +34,8 @@ public class Main23作业3 {
 		
 		Dog2 dog = new Dog2(name,age,color);
 		System.out.println(dog);
+		
+		
 	}
 }
 
