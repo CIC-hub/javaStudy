@@ -237,7 +237,125 @@ public void test4() {
 
 
 
-### 5 Stream API
+### 4 Stream API
 
-#### 5.1
+```java
+//Stream关注的是对数据的计算，与CPU打交道
+
+//集合关注的是对数据的存储，与内存打交道
+```
+
+#### 4.1 特性
+
+```java
+//Stream自己不会存储元素
+
+//Stream不会改变源对象，会返回一个持有结果都新Stream
+
+//Stream操作是延迟执行的，会等到需要结果的时候才执行
+```
+
+**三步操作：Stream实例化、中间操作（过滤、映射、...）、终止操作**
+
+#### 4.2 Stream实例化
+
+```java
+//1通过集合创建Stream
+@Test
+public void test1() {
+  List<Employee> employees = EmployeeData.getEmployees();
+
+    //default Stream<E> stream()：返回一个顺序流
+  Stream<Employee> stream = employees.stream();
+
+    //default Stream<E> parallelStream()：返回一个并行流
+  Stream<Employee> parallelStream = employees.parallelStream();
+}
+
+//2通过数组创建Stream
+@Test
+public void test2() {
+    int[] arr = new int[] {1,2,3,4,5};
+    IntStream stream = Arrays.stream(arr);
+
+    Employee e1 = new Employee(1,"a");
+    Employee e2 = new Employee(2,"b");
+    Employee[] arr1 = new Employee[] {e1,e2};
+    Stream<Employee> stream2 = Arrays.stream(arr1);
+}
+
+//3通过Stream的of
+@Test
+public void test3() {
+    Stream<Integer> stream = Stream.of(1,2,3,4,5);	
+}
+
+//4创建无限流
+@Test
+public void test4() {
+	//迭代
+	//public static<T> Stream<T> iterate(final T seed, final 											UnaryOperator<T> f)
+    //遍历前10个偶数
+    Stream.iterate(0,
+               t->t+2).limit(10).forEach(System.out::println);;
+
+    //生成
+    //public static<T> Stream<T> generate(Supplier<T> s)
+    Stream.generate(Math::random).limit(10).forEach(System.out::println);
+}
+```
+
+#### 4.3中间操作
+
+**一个中间操作链，对数据源的数据进行处理**。
+
+***1.筛选与切片***
+
+```java
+@Test
+public void test1() {
+    List<Employee> list = new EmployeeData().getEmployees();
+    Stream<Employee> stream = list.stream();
+
+//filter(Predicate p) --接收Lambda，从流中排除某些元素		
+    System.out.println("filter");
+    stream.filter(e -> 		   
+                e.getSalary()>50).forEach(System.out::println);
+//stream已关闭
+
+//limit(n) --截断流，使其元素不超过给定数量
+    System.out.println("limit");
+    list.stream().limit(3).forEach(System.out::println);
+
+//skip(n) --跳过元素，返回除去前n个元素的流，若元素不足n个，则返回空流，与limit(n)互补
+    System.out.println("skip");
+    list.stream().skip(3).forEach(System.out::println);
+
+//distinct() 筛选，通过流所生成元素的hashCode()和equals()去除重复元素
+    System.out.println("distinct");
+
+    list.add(new Employee(1010,"a",10,99));
+    list.add(new Employee(1010,"a",10,99));
+    list.add(new Employee(1010,"a",10,99));
+    list.add(new Employee(1010,"a",10,99));
+    list.add(new Employee(1011,"a",10,99));
+
+    list.stream().distinct().forEach(System.out::println);;
+}
+```
+
+***2.映射***
+
+```java
+```
+
+
+
+#### 4.4 终止操作	
+
+
+
+一旦执行终止操作，就执行中间操作链，并产生结果，之后不会再被使用
+
+
 
