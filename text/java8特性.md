@@ -347,13 +347,78 @@ public void test1() {
 ***2.映射***
 
 ```java
+//map(Function f)接收一个函数作为参数，将元素转换成其他形式/提取信息
+//该函数会被应用到每个元素上，并将其映射成一个新的元素
+public void test1() {
+    List<String>list = Arrays.asList("aa","bb","cc","dd");
+    list.stream().map(s -> s.toUpperCase()). 		    
+        							forEach(System.out::print);
+    list.stream().map(String::toUpperCase).
+      								forEach(System.out::print);
+}
+
+public void test2() {
+    List<Employee>employees = EmployeeData.getEmployees();
+    Stream<String> nameStream = employees.stream().
+        								map(e -> e.getName());
+    nameStream.filter(name -> name.length()>1).
+        							forEach(System.out::print);
+    employees.stream().map(Employee::getId).
+        	filter(id -> id>1003).forEach(System.out::print);;
+}
+```
+
+```java
+//flatMap(Function f)接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连成一个流
+public void test3() {
+    List<String>list = Arrays.asList("aa","bb","cc","dd");
+
+    Stream<Stream<Character>> streamstream = 
+        list.stream().map(Main8StreamAPI3::fromStringToStream);
+    streamstream.forEach(s ->{
+        s.forEach(System.out::print);
+    });
+    Stream<Character> flatMap = list.stream().
+       			 flatMap(Main8StreamAPI3::fromStringToStream);
+    flatMap.forEach(System.out::print);
+}
+
+public static Stream<Character> fromStringToStream(String str) {
+    ArrayList<Character> arrayList = 
+        							new ArrayList<Character>();
+    for (Character c : str.toCharArray()) {
+        arrayList.add(c);
+    }
+    return arrayList.stream();
+}
+```
+
+***3.排序***
+
+```java
+//sorted()自然排序
+List<Integer> list = Arrays.asList(1,2,3,4,5,0,9,-1);
+list.stream().sorted().forEach(System.out::println);
+//类使用sorted()要实现Comparable接口
+
+//sorted(Comparator com)定制排序
+List<Employee> employees = EmployeeData.getEmployees();
+employees.stream().sorted((e1,e2) -> -Integer.compare(e1.getAge(),
+   					e2.getAge())).forEach(System.out::println);
+
+employees.stream().sorted((e1,e2) -> {
+    int ageValue = -Integer.compare(e1.getAge(), e2.getAge());
+    if (ageValue != 0) {
+        return ageValue;
+    }else {
+        return -Double.compare(e1.getSalary(), e2.getSalary());
+    }			 
+}).forEach(System.out::println);
 ```
 
 
 
 #### 4.4 终止操作	
-
-
 
 一旦执行终止操作，就执行中间操作链，并产生结果，之后不会再被使用
 
