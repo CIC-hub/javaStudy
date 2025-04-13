@@ -422,5 +422,102 @@ employees.stream().sorted((e1,e2) -> {
 
 一旦执行终止操作，就执行中间操作链，并产生结果，之后不会再被使用
 
+***1.匹配与查找***
 
+```java
+List<Employee> employees = EmployeeData.getEmployees();
+//allMatch(Predicate p)检查是否匹配所有元素
+boolean allMatch = employees.stream().
+    						   	allMatch(e -> e.getAge() > 5);
+System.out.println(allMatch);
+
+//anyMatch(Predicate p)检查是否至少匹配一个元素
+boolean anyMatch = employees.stream().
+    						anyMatch(e -> e.getId() > 1002);
+System.out.println(anyMatch);
+
+//noneMatch(Predicate p)检查是否没有匹配的元素
+boolean noneMatch = employees.stream().
+    			noneMatch(e -> e.getName().startsWith("a"));
+System.out.println(noneMatch);
+
+//findFirst返回第一个元素
+Optional<Employee> first = employees.stream().findFirst();
+System.out.println(first);
+
+//findAny返回当前流中的任意元素
+Optional<Employee> any = employees.parallelStream().findAny();
+System.out.println(any);
+```
+
+```java
+List<Employee> employees = EmployeeData.getEmployees();
+//count返回流中元素的总个数
+long count = employees.stream().
+    					filter(e -> e.getId() > 1005).count();
+System.out.println(count);
+
+//max(Comparator c)返回流中最大值
+Stream<Double> salaryStream = employees.stream().
+    								map(e -> e.getSalary());
+Optional<Double> maxSalary = salaryStream.max(Double::compare);
+System.out.println(maxSalary);
+
+//min(Comparator c)返回流中最小值
+Optional<Employee> employee = employees.stream().
+min((e1,e2) -> Double.compare(e1.getSalary(), e2.getSalary()));
+System.out.println(employee);
+
+//forEach(Comsumer c)内部迭代
+employees.stream().forEach(System.out::println);
+//集合里的默认方法
+employees.forEach(System.out::println);
+//使用迭代器的是外部迭代
+```
+
+***2.归约***
+
+```java
+//reduce(T identity,BinaryOperator b)
+//可以将流中元素反复结合起来，得到一个值。返回T
+//BinaryOperator<T> entends BiFunction<T,T,T> 传入两个返回一个
+List<Integer> list = Arrays.asList(1,2,3,4,5);
+Integer sum = list.stream().reduce(0,Integer::sum);
+System.out.println(sum);
+Integer sum2 = list.stream().reduce(10,Integer::sum);
+System.out.println(sum2);
+
+//reduce(BinaryOperator b)
+//可以将流中元素反复结合起来，得到一个值，返回Opetional<T>
+List<Employee> employees = EmployeeData.getEmployees();
+Stream<Double> salaryStream = employees.stream().map(Employee::getSalary);
+Optional<Double> sumMoney = salaryStream.
+    								reduce((d1,d2) -> d1+d2);
+//Optional<Double> sumMoney = salaryStream.reduce(Double::sum);
+System.out.println(sumMoney);
+```
+
+***3.收集***
+
+```java
+//collect(Collector c)将流转换为其他形式
+//接收一个Collector接口的实现，用于给Stream中元素做汇总的方法
+List<Employee> employees = EmployeeData.getEmployees();
+
+List<Employee> employeeList = employees.stream().
+   				 		filter(e -> e.getSalary() >50).
+   								 collect(Collectors.toList());
+employeeList.forEach(System.out::println);
+
+Set<Employee> employeeList2 = employees.stream().
+  						  filter(e -> e.getSalary() > 50).
+  								  collect(Collectors.toSet());
+employeeList2.forEach(System.out::println);
+```
+
+
+
+### 5 Opetional类
+
+ #### 5.1 
 
