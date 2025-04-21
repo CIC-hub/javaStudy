@@ -517,7 +517,45 @@ employeeList2.forEach(System.out::println);
 
 
 
-### 5 Opetional类
+### 5 Optional类
 
- #### 5.1 
+Optional<T>类是一个容器类，他可以保存类型T的值，代表这个值存在；或者保存null，表示这个值不存在。
+
+***为了避免出现空指针异常***
+
+**常用：ofNullable(T t)、orElse(T t)**
+
+ #### 5.1 创建实例
+
+```java
+//Optional.of(T t)创建一个Optional实例，t必须非空
+//Optional.empty()创建一个空的Optional实例
+//Optional.ofNullable(T t) t可以为null
+```
+
+```java
+Girl girl = new Girl();
+//		girl = null;//NullPointerException
+Optional<Girl> optional1 = Optional.of(girl);
+System.out.println(optional1);
+
+Girl girl2 = new Girl();
+girl2 = null;
+Optional<Girl> optional2 = Optional.ofNullable(girl2);
+System.out.println(optional2);
+```
+
+#### 5.2 使用
+
+```java
+//判断Optional容器中是否包含对象
+boolean isPresent()
+    
+//获取Optional容器的对象
+T get()//如果调用对象包含值，返回该值，否则抛异常（保证非空）
+T orElse(T other)//若前面Optional内部封装的t非空，则将其返回，否则返回指定的other对象
+```
+
+```java
+```
 
