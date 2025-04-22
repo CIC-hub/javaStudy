@@ -170,7 +170,7 @@ select 字段名1,字段名2 '字段名3' from 表名;
 select ename,sal*12 as '年薪' from emp;
 ```
 
-
+select后要跟字面量/字面值时，生成from后列个数的值
 
 #### 2.2 条件查询
 
@@ -260,29 +260,230 @@ select upper(name) from t_student;
 select substr(ename,1,1) from emp;
 ```
 
+```
+ select ename from emp where substr(ename,1,1) = 'A';//A开头
+```
+
+`concat(内容1，内容2)`字符串拼接
+
+```
+select concat(upper(substr(name,1,1)),substr(name,2,length(name)-1))
+as result from t_student;	//首字母大写
+```
+
+`length()`取长度
+
+```
+select length(ename) enamelength from emp;
+```
+
+`trim()`去空格
+
+```
+select * from emp where ename = trim('  KING');
+```
+
+`round(数,保留的位数)`四舍五入
+
+```
+select round(123.456,1) from emp;	//123.5
+select round(123.456,-1) from emp;	//120
+```
+
+`rand()`生成随机数
+
+```
+select round(rand()*100,0) from emp;	//100内随机数
+```
+
+`ifnull(字段,值)`空处理函数，该字段为空则以给定值替代
+
+```
+select ename,sal+comm as salcom from emp;
+//有空参与的数学运算结果为空
+select ename,sal+ifnull(comm,0) as salcom from emp;
+```
+
+`str_to_date`字符串转日期
+
+`date_format`格式化日期
+
+`format`设置千分位
+
+`case..when..then..when..then..else..end`
+
+```
+select ename,job,sal as oldsal,
+	(case job when 'manager' then sal*1.1
+			 when 'salesman' then sal*1.5
+    else sal end) as newsal
+from emp;
+```
 
 
 
+#### 2.5 分组函数
+
+又叫多行处理函数，输入多行，输出一行
+
+**先进行分组，再使用，否则整张图为一组**
+
+`count`计数
+
+```
+select count(sal) from emp;
+```
+
+`sum`
+
+```
+select sum(sal) from emp;
+```
+
+`avg`
+
+```
+select avg(sal) from emp;
+```
+
+`max`
+
+```
+select max(sal) from emp;
+```
+
+`min`
+
+```
+select min(sal) from emp;
+```
 
 
 
+**注意点：**
+
+**1. 自动忽略null**
+
+```
+select sum(comm) from emp;
+```
+
+**2.count(*)与count(字段)**
+
+count(*)：行数，所有列为null的数据不存在
+
+count(字段)：字段不为null的元素总数
+
+**3.分组函数不能用在where中**
+
+```
+select ename,sal from emp where sal > min(sal);
+//error
+```
+
+**4.所有分组函数可以组合在一起使用**
+
+```
+select sum(sal),min(sal),max(sal),avg(sal),count(*) from emp;
+```
 
 
 
+#### 2.6 分组查询（重要）
 
+**格式**
 
+```
+select
+	...
+from
+	...
+where
+	...
+group by
+	...
+order by
+	...
+```
 
+**执行顺序**
 
+**from -> where -> group by -> select -> order by**
 
+```
+select ename,sal from emp where sal > min(sal);
+//where执行时还未分组
+```
 
+```
+select sum(sal) from emp;
+//select时已经分完组，默认为整张表
+```
 
+**在select语句中，如果有group，select后面只能跟参与分组的字段、分组函数**
 
+```
+select job,sum(sal) from emp group by job;
+select deptno,max(sal) from emp group by deptno;
+```
 
+**两个字段可以看成一个字段（联合分组）**
 
+```
+select deptno,job,max(sal) from emp group by deptno,job;
+//每个部门，不同岗位的薪资
+```
 
+**having可以对分组后的数据进行过滤，必须与group by一起用，不可替代where**
 
+```
+select deptno,max(sal) from emp 
+	group by deptno having max(sal)>3000;
+//找出每个部门最高薪资大于3000的
+select deptno,max(sal) from emp where sal>3000 group by deptno;
+```
 
+```
+//where用不了，找出每个部门平均薪资高于2500的
+select deptno,avg(sal) from emp group by deptno
+									having avg(sal)>2500;
+```
 
+**where和having优先选择where**
 
+ #### 2.7 单表查询总结
 
+**格式**
+
+```
+select		...
+from		...
+where		...
+group by	...
+having		...
+order by	...
+```
+
+**执行顺序**
+
+`from` `->` `where` `->` `group by` `->` `having` `->` `select` `->` `order by`
+
+从某张表中查询数据，
+
+先经过where条件筛选出有价值的数据，
+
+对这些有价值的数据进行分组，
+
+分组之后可以使用having继续筛选，
+
+select查询出来，
+
+最后排序输出
+
+```
+//找出每个岗位平均薪资，
+//要求显示平均薪资大于1500，除manager岗位以外，按平均薪资降序排
+select job,avg(sal) as avgsal from emp where job <> 'manager'
+	group by job having avg(sal)>1500 order by avgsal desc;
+```
 
