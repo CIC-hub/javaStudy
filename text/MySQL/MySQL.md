@@ -711,8 +711,7 @@ having		...
 order by	...
 limit		...
 
-from -> where -> group by -> having -> select -> 
-											order by -> limit
+from -> where -> group by -> having -> select -> order by -> limit
 
 from先通过这个地方查，where在经过这个条件筛选，group by分组，having分组后过滤，select过滤后查出来，order by查出来进行排序，limit排序后取段
 ```
