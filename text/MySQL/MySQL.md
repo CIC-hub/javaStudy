@@ -487,3 +487,61 @@ select job,avg(sal) as avgsal from emp where job <> 'manager'
 	group by job having avg(sal)>1500 order by avgsal desc;
 ```
 
+#### 2.8 去重
+
+`distinct`，只能用在所有字段的最前方
+
+```
+select distinct job from emp;
+//联合去重
+select distinct job,deptno from emp;
+select count(distinct job) from emp;
+```
+
+#### 2.9 链接查询（重要）
+
+分类：
+
+​	内连接：等值连接、非等值连接、自联结
+
+​	外连接：左（外）连接、右（外）连接
+
+​	全连接
+
+笛卡尔积现象：两张表进行连接查询，没有任何条件限制时，查询结果条数为这两张表条数的乘积
+
+```
+select ename,dname from emp,dept;
+```
+
+加条件限制：
+
+```
+//SQL92
+//查询次数没有减少
+select ename,dname from emp,dept where emp.deptno = dept.deptno;
+//ename会在两张表中都去寻找
+select emp.ename,dept.dname from emp,dept where emp.deptno = dept.deptno; 
+//指定了表
+select e.ename,d.dname from emp e,dept d where e.deptno = d.deptno;
+//起别名
+```
+
+表的连接次数越多，效率越低
+
+#### 2.10 内连接
+
+99语法比92结构清晰，过滤时92加条件and，99用where
+
+ `格式`
+
+```
+select ... from a join b on a和b的连接条件 where 筛选条件
+```
+
+`等值连接`，连接条件为等量关系
+
+```
+select  e.ename,d.dname from emp e,dept d on
+```
+
