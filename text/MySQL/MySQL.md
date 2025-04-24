@@ -529,19 +529,191 @@ select e.ename,d.dname from emp e,dept d where e.deptno = d.deptno;
 
 表的连接次数越多，效率越低
 
-#### 2.10 内连接
-
 99语法比92结构清晰，过滤时92加条件and，99用where
 
- `格式`
+#### 2.10 内连接
+
+**特点：完全匹配条件的数据查询出来**
+
+ `格式`（`inner`可省略）
 
 ```
-select ... from a join b on a和b的连接条件 where 筛选条件
+select ... from a inner join b on a和b的连接条件 where 筛选条件
 ```
 
 `等值连接`，连接条件为等量关系
 
 ```
-select  e.ename,d.dname from emp e,dept d on
+//显示员工名和部门名
+select  e.ename,d.dname 
+from emp e join dept d on e.deptno = d.deptno;
+```
+
+`非等值连接`
+
+```
+//显示员工名、工资、工资等级
+select e.ename,e.sal,s.grade 
+from emp e join salgrade s on e.sal between s.losal and s.hisal;
+```
+
+`自连接`
+
+```
+//显示员工名、其领导名
+select a.ename '员工名',b.ename '领导名'
+from emp a join emp b on a.mgr = b.empno;
+//只有13条，King的领导为null
+```
+
+#### 2.11 外连接
+
+**有主次关系**
+
+`右（外）连接`，把`join`右边的表当主表，把这张表的数据全部查询，左边顺带查询
+
+```
+select e.ename,d.dname
+from emp e right join dept d on e.deptno = d.deptno;
+```
+
+`左（外）连接`，把`join`左边的表当主表
+
+```
+select e.ename,d.dname
+from dept d left join emp e on e.deptno = d.deptno;
+```
+
+左连接和右连接可以互换，`right`/`left`后面可以省略`outer`
+
+区分内/外连接：`right`/`left`
+
+外连接查询结果条数 >= 内连接查询结果条数
+
+```
+//显示员工名、其领导名
+select a.ename '员工名',b.ename '领导名'
+from emp a left join emp b on a.mgr = b.empno;
+//14条，King的领导写为null
+```
+
+#### 2.12 多张表连接
+
+`格式`
+
+```
+select ... from a join b on a和b的连接条件
+				  join c on a和c的连接条件
+				  join d on a和d的连接条件
+```
+
+内外连接可以混合
+
+```
+//显示员工名、部门名、薪资、薪资等级、领导名
+select e.ename,d.dname,e.sal,s.grade,l.ename
+from emp e join dept d on e.deptno = d.deptno
+		   join salgrade s on e.sal between s.losal and s.hisal
+		   left join emp l on e.mgr = l.empno;
+```
+
+#### 2.13 子查询
+
+`select`语句中嵌套`select`语句
+
+```
+select 	..(select).
+from	..(select).
+where	..(select).
+```
+
+`where`子句中的子查询
+
+```
+//找出比最低工资高的员工名、工资
+select min(sal) from emp;
+select ename,sal from emp where sal > 800;
+//子查询要加()
+select ename,sal from emp 
+	where sal > (select min(sal) from emp);
+```
+
+`from`子句中的子查询，可以把子查询的查询结果当做一张临时表
+
+```
+//找出每个岗位平均工资的薪资等级
+select job,avg(sal) avgsal from emp group by job;
+select t.job,t.avgsal,s.grade 
+from t join salgrade s on t.avgsal between s.losal and s.hisal;
+//子查询要加()
+select t.*,s.grade 
+	from (select job,avg(sal) avgsal from emp group by job) t
+	join salgrade s on t.avgsal between s.losal and s.hisal;
+```
+
+`select`后出现的子查询（了解）
+
+```
+//找出员工名、部门
+select e.ename,e.deptno,
+(select d.dname from dept d where e.deptno = d.deptno) as dname
+from emp e;
+//不需要用到连接，子查询一次只能查一个结果，否则报错
+```
+
+#### 2.14 union
+
+**合并查询结果集**
+
+```
+//查询结果是manager和salesman的员工
+select ename,job from emp where job = 'manager' or job = 'salesman';
+select ename,job from emp where job in ('manager','salesman');
+```
+
+```
+select ename,job from emp where job = 'manager' union
+select ename,job from emp where job = 'salesman';
+```
+
+`union`的效率高。对于表连接，每连接一次新表，匹配的次数满足笛卡尔积，使用`union`匹配次数为两表数据之和。（`union`把乘法变成了加法）
+
+**union在进行结果集合并时，查询的列及其数据类型应保持一致。**
+
+#### 2.15 limit
+
+**把查询结果集的一部分取出来**
+
+```
+limit startIndex,length//从0开始，0 1 2 3 4 5 ...
+limit 5//前5个
+```
+
+```
+select ename,sal from emp order by sal desc limit 5;
+select ename,sal from emp order by sal desc limit 2,5;
+```
+
+**`limit`要在`order by`后执行**
+
+分页：`limit = (pageNo-1)*pageSize,pageSize`	
+
+#### 2.16 DQL总结
+
+格式：
+
+```
+select		... 
+from		... 
+where		... 
+group by	... 
+having		... 
+order by	...
+limit		...
+
+from -> where -> group by -> having -> select -> 
+											order by -> limit
+
+from先通过这个地方查，where在经过这个条件筛选，group by分组，having分组后过滤，select过滤后查出来，order by查出来进行排序，limit排序后取段
 ```
 
