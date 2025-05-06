@@ -1016,3 +1016,19 @@ insert into t_vip(id) values(3);
 
 #### 5.2 唯一性约束
 
+**`unique`，约束的字段不能重复，但可以为null**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int,
+    name varchar(255) unique,
+    email varchar(255)
+);
+insert into t_vip(id,name,email) values(1,'zhangsan','zhangsan@123.com');
+insert into t_vip(id,name,email) values(2,'lisi','lisi@123.com');
+insert into t_vip(id) values(3);
+//报错
+insert into t_vip(id,name,email) values(4,'zhangsan','zhangsan@sira.com');
+```
+
