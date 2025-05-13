@@ -1002,6 +1002,8 @@ truncate table 表名;
 
 **非空约束not null的字段不能为null**
 
+**只有列级约束，没有表级约束**
+
 ```mysql
 drop table if exists t_vip;
 create table t_vip(
@@ -1018,6 +1020,8 @@ insert into t_vip(id) values(3);
 
 **`unique`，约束的字段不能重复，但可以为null**
 
+**列级约束：约束直接添加在列后**
+
 ```mysql
 drop table if exists t_vip;
 create table t_vip(
@@ -1025,10 +1029,189 @@ create table t_vip(
     name varchar(255) unique,
     email varchar(255)
 );
-insert into t_vip(id,name,email) values(1,'zhangsan','zhangsan@123.com');
+insert into t_vip(id,name,email) values(1,'zs','zs@123.com');
 insert into t_vip(id,name,email) values(2,'lisi','lisi@123.com');
 insert into t_vip(id) values(3);
 //报错
-insert into t_vip(id,name,email) values(4,'zhangsan','zhangsan@sira.com');
+insert into t_vip(id,name,email) values(4,'zs','zs@sira.com');
+```
+
+**联合唯一**
+
+**表级约束：约束没有添加在列后**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int,
+	name varchar(255),
+	email varchar(255),
+	unique(name,email)
+);
+insert into t_vip(id,name,email) values(1,'zs','zs@123.com');
+insert into t_vip(id,name,email) values(1,'zs','zs@sira.com');
+select * from t_vip;
+```
+
+#### 5.3 主键约束
+
+**mysql中字段被`not null`和`unique`同时约束时，该字段自动成为主键字段，oracle中不会**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int,
+    name varchar(255) not null unique
+);
+desc t_vip;
+```
+
+```mysql
+insert into t_vip(id,name) values(1,'zs');
+//报错
+insert into t_vip(id,name) values(2,'zs');
+//报错
+insert into t_vip(id) values(3);
+```
+
+主键约束、主键字段、主键值
+
+**主键值为该记录的唯一标识**
+
+**任何一张表都应有主键，没有主键，表无效**
+
+**主键不能为null，不能重复**
+
+**单一主键：一个字段做主键**
+
+**列级约束**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int primary key,
+    name varchar(255)
+);
+desc t_vip;
+```
+
+**表级约束**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int,
+    name varchar(255),
+    primary key(id)
+);
+desc t_vip;
+```
+
+```mysql
+insert into t_vip(id,name) values(1,'zs');
+insert into t_vip(id,name) values(2,'zs');
+//报错
+insert into t_vip(id,name) values(2,'wangwu');
+//报错
+insert into t_vip(name) values('wangwu');
+```
+
+**复合主键：多个字段联合起来做主键**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+	id int,
+    name varchar(255),
+    primary key(id,name)
+);
+desc t_vip;
+```
+
+```mysql
+insert into t_vip(id,name) values(1,'zs');
+insert into t_vip(id,name) values(2,'zs');
+insert into t_vip(id,name) values(2,'wangwu');
+//报错
+insert into t_vip(id,name) values(2,'wangwu');
+```
+
+**实际开发使用单一主键**
+
+**一张表中主键只能有一个**
+
+**一般用int、bigint、char**
+
+**mysql中自动维护主键值：auto_increment**
+
+```mysql
+drop table if exists t_vip;
+create table t_vip(
+    id int primary key auto_increment,
+    name varchar(255)
+);
+desc t_vip;
+```
+
+```mysql
+insert into t_vip(name) values('zs');
+insert into t_vip(name) values('zs');
+insert into t_vip(name) values('zs');
+select * from t_vip;
+```
+
+#### 5.4 外键约束（重要）
+
+`foreign key`，简称`FK`，外键约束、外键字段、外键值
+
+**子表中的字段引用附表中的字段，子表字段被约束，保证数据安全，子表字段值只能来自父表字段值**
+
+**建表先建父表，删表先删子表**
+
+```mysql
+foreign key(子表字段) references 父表名(父表字段)
+```
+
+```
+```
+
+**子表中外键引用父表的字段，父表的字段    不一定为主键，但至少有unique约束**
+
+**外键值可以为NULL**
+
+```mysql
+drop table if exists t_student;
+drop table if exists t_class;
+create table t_class(
+	classno int primary key,
+	classname varchar(255)
+);
+create table t_student(
+	no int primary key auto_increment,
+	name varchar(255),
+	cno int,
+	foreign key(cno) references t_class(classno)
+);
+
+insert into t_class(classno,classname) values(100,'class one');
+insert into t_class(classno,classname) values(101,'class two');
+
+insert into t_student(name,cno) values('t1',100);
+insert into t_student(name,cno) values('t2',100);
+insert into t_student(name,cno) values('t3',101);
+insert into t_student(name,cno) values('t4',101);
+
+select * from t_student;
+select * from t_class;
+```
+
+```
+source D:\\StudySoftware\\Eclipse\\w2\\javaStudy\\text\\MySQL\\t_student.sql;
+```
+
+```mysql
+insert into t_student(name,cno) values('t2',100);
+//报错
+insert into t_student(name,cno) values('t2',102);
 ```
 
