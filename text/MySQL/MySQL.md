@@ -1215,3 +1215,117 @@ insert into t_student(name,cno) values('t2',100);
 insert into t_student(name,cno) values('t2',102);
 ```
 
+### 6 存储引擎（了解）
+
+mysql中的一个表存储/组织数据的方式
+
+```mysql
+//查看存储引擎
+show create table 表名;
+```
+
+mysql默认的存储引擎：InnoDB
+
+​	  默认的字符编码方式：utf8
+
+```mysql
+//建表指定存储引擎	在最后小括号外面engine，charset指定存储引擎，字符集
+create table t_product(
+	id int primary key,
+    name varchar(255)
+)engine=InnoDB default charset=gbk;
+```
+
+**常用存储引擎**
+
+```mysql
+//查看mysql支持的存储引擎
+show engines \G
+```
+
+`MyISAM`
+
+​	使用三个文件表示一张表：
+
+​		格式文件：存储表结构的定义	mytable.fim
+
+​		数据文件：存储表行的内容	mytable.MYD
+
+​		索引文件：存储表上索引，缩小扫描范围	mytable.MYI
+
+​	可被转换为压缩、只读表来节省空间
+
+​	主键、加有unique约束的字段会自动创建索引
+
+特点：可被转换为压缩、只读表来节省空间；不支持事务，安全性低
+
+`InnoDB`
+
+​	mysql默认的存储引擎
+
+​	表格式存在.fim文件
+
+​	支持事务，支持数据库崩溃后自动恢复机制
+
+​	InnoDB表空间tablespace用于存储表内容和索引
+
+特点：支持事务，以保证数据安全；不能压缩，不能转换成只读
+
+`MEMORY`
+
+​	数据和索引存在内存中，查询快
+
+​	表格式存在.fim文件
+
+​	不能包含TEXT或BLOB字段
+
+​	以前叫做HEAP引擎
+
+特点：查询效率高；不安全，关机后数据消失
+
+### 7 事务（重要）
+
+#### 7.1 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
