@@ -6,49 +6,49 @@ windows中启动、关闭MySQL服务：net stop 服务名称；net start 服务�
 
 本地登陆（显示密码）
 
-```
-C:\Users\11813>mysql -uroot -p123456
+```mysql
+mysql -uroot -p123456
 ```
 
 本地登陆（隐藏密码）
 
-```
-C:\Users\11813>mysql -uroot -p
+```mysql
+mysql -uroot -p
 ```
 
 查看数据库
 
-```
+```mysql
 show databases;
 ```
 
 使用数据库
 
-```
+```mysql
 use 数据库名
 ```
 
 创建数据库
 
-```
+```mysql
 create database 数据库名;
 ```
 
 查看数据库
 
-```
+```mysql
 select database();
 ```
 
 查看版本号
 
-```
+```mysql
 select version();
 ```
 
 退出sql
 
-```
+```mysql
 exit
 ```
 
@@ -70,27 +70,27 @@ exit
 
 查看表
 
-```
+```mysql
 show tables;
 ```
 
 导入数据
 
-```
+```mysql
 source 文件名（不能中文、\\）;
 ```
 
-```
+```mysql
 source G:\\StudySoftware\\EclipseWorkspace\\clone\\javaStudy\\text\\MySQL\\bjpowernode.sql;
 ```
 
 查看表中数据
 
-```
+```mysql
 select * from 表名;	//查询表中所有数据
 ```
 
-```
+```mysql
 desc 表名;	//查询表的结构，describe
 ```
 
@@ -106,31 +106,31 @@ source 文件路径
 
 DQL：数据查询语言
 
-```
+```mysql
 带select关键字
 ```
 
 DML：数据操作语言，对表中数据进行增删改
 
-```
+```mysql
 insert、delete、update
 ```
 
 DDL：数据定义语言，对表的结构进行增删改
 
-```
+```mysql
 create、drop、alter
 ```
 
 TCL： 事务控制语言
 
-```
+```mysql
 事务提交：commit、事务回滚：rollback
 ```
 
 DCL：数据控制语言
 
-```
+```mysql
 授权：grant、撤销权限：revoke
 ```
 
@@ -142,26 +142,26 @@ DCL：数据控制语言
 
 查询一个字段
 
-```
+```mysql
 select 字段名 from 表名;
 ```
 
  查询多个字段	使用逗号隔开
 
-```
+```mysql
 select 字段名1,字段名2 from 表名;
 ```
 
 查询所有字段
 
-```
+```mysql
 select * from 表名;	//效率低，可读性差，开发不建议
 select 字段名1,字段名2,字段名3 from 表名;
 ```
 
 给查询的列起 `别名`
 
-```
+```mysql
 select 字段名1,字段名2 as 字段名3 from 表名;
 select 字段名1,字段名2 字段名3 from 表名;	//as可省
 select 字段名1,字段名2 '字段名3' from 表名;
@@ -172,7 +172,7 @@ select 字段名1,字段名2 '字段名3' from 表名;
 
 **select不会修改，只查询**
 
-```
+```mysql
 select ename,sal*12 as '年薪' from emp;
 ```
 
@@ -180,7 +180,7 @@ select后要跟字面量/字面值时，生成from后列个数的值
 
 #### 2.2 条件查询
 
-```
+```mysql
 select
 	字段1,字段2,字段3
 from
@@ -199,14 +199,14 @@ where
 
 `in`（包含，多个`or`）、`not in`
 
-```
+```mysql
 select job from emp where job in(具体值1,具体值2);
 select job from emp where job = 具体值1 or job = 具体值2;
 ```
 
 `like`（模糊查询，支持%或_）
 
-```
+```mysql
 select job from emp where ename like '%a%';//名字里含有a
 select job from emp where ename like '%a';//名字以a结尾
 select job from emp where ename like 'a%';//名字以a开头
@@ -214,7 +214,7 @@ select job from emp where ename like '_a% ';//名字第2个字母为a
 select job from emp where ename like '__a%';//名字第3个字母为a
 ```
 
-```
+```mysql
 select job from emp where ename like '%\_%';//名字里含有_，用\
 ```
 
@@ -226,14 +226,14 @@ select job from emp where ename like '%\_%';//名字里含有_，用\
 
 **单项排序**
 
- ```
+ ```mysql
  select ename,sal from emp order by sal;//默认升序或加asc
  select ename,sal from emp order by sal desc;//降序
  ```
 
 **多项排序**
 
-```
+```mysql
 select ename,sal from emp order by sal asc,ename asc;
 //sal主导，ename次之
 ```
@@ -250,61 +250,61 @@ select ename,sal from emp order by sal asc,ename asc;
 
 `lower(字段名)`转小写
 
-```
+```mysql
 select lower(ename) from emp;
 ```
 
 `upper(字段名)`转大写
 
-```
+```mysql
 select upper(name) from t_student;
 ```
 
 `substr(字符串,起始下标,截取长度)`取子串，从1开始
 
-```
+```mysql
 select substr(ename,1,1) from emp;
 ```
 
-```
+```mysql
  select ename from emp where substr(ename,1,1) = 'A';//A开头
 ```
 
 `concat(内容1，内容2)`字符串拼接
 
-```
+```mysql
 select concat(upper(substr(name,1,1)),substr(name,2,length(name)-1))
 as result from t_student;	//首字母大写
 ```
 
 `length()`取长度
 
-```
+```mysql
 select length(ename) enamelength from emp;
 ```
 
 `trim()`去空格
 
-```
+```mysql
 select * from emp where ename = trim('  KING');
 ```
 
 `round(数,保留的位数)`四舍五入
 
-```
+```mysql
 select round(123.456,1) from emp;	//123.5
 select round(123.456,-1) from emp;	//120
 ```
 
 `rand()`生成随机数
 
-```
+```mysql
 select round(rand()*100,0) from emp;	//100内随机数
 ```
 
 `ifnull(字段,值)`空处理函数，该字段为空则以给定值替代
 
-```
+```mysql
 select ename,sal+comm as salcom from emp;
 //有空参与的数学运算结果为空
 select ename,sal+ifnull(comm,0) as salcom from emp;
@@ -318,7 +318,7 @@ select ename,sal+ifnull(comm,0) as salcom from emp;
 
 `case..when..then..when..then..else..end`
 
-```
+```mysql
 select ename,job,sal as oldsal,
 	(case job when 'manager' then sal*1.1
 			 when 'salesman' then sal*1.5
@@ -336,31 +336,31 @@ from emp;
 
 `count`计数
 
-```
+```mysql
 select count(sal) from emp;
 ```
 
 `sum`
 
-```
+```mysql
 select sum(sal) from emp;
 ```
 
 `avg`
 
-```
+```mysql
 select avg(sal) from emp;
 ```
 
 `max`
 
-```
+```mysql
 select max(sal) from emp;
 ```
 
 `min`
 
-```
+```mysql
 select min(sal) from emp;
 ```
 
@@ -370,7 +370,7 @@ select min(sal) from emp;
 
 **1. 自动忽略null**
 
-```
+```mysql
 select sum(comm) from emp;
 ```
 
@@ -382,14 +382,14 @@ count(字段)：字段不为null的元素总数
 
 **3.分组函数不能用在where中**
 
-```
+```mysql
 select ename,sal from emp where sal > min(sal);
 //error
 ```
 
 **4.所有分组函数可以组合在一起使用**
 
-```
+```mysql
 select sum(sal),min(sal),max(sal),avg(sal),count(*) from emp;
 ```
 
@@ -399,7 +399,7 @@ select sum(sal),min(sal),max(sal),avg(sal),count(*) from emp;
 
 **格式**
 
-```
+```mysql
 select
 	...
 from
@@ -416,40 +416,41 @@ order by
 
 **from -> where -> group by -> select -> order by**
 
-```
+```mysql
 select ename,sal from emp where sal > min(sal);
 //where执行时还未分组
+//error
 ```
 
-```
+```mysql
 select sum(sal) from emp;
 //select时已经分完组，默认为整张表
 ```
 
 **在select语句中，如果有group，select后面只能跟参与分组的字段、分组函数**
 
-```
+```mysql
 select job,sum(sal) from emp group by job;
 select deptno,max(sal) from emp group by deptno;
 ```
 
 **两个字段可以看成一个字段（联合分组）**
 
-```
+```mysql
 select deptno,job,max(sal) from emp group by deptno,job;
 //每个部门，不同岗位的薪资
 ```
 
 **having可以对分组后的数据进行过滤，必须与group by一起用，不可替代where**
 
-```
+```mysql
 select deptno,max(sal) from emp 
 	group by deptno having max(sal)>3000;
 //找出每个部门最高薪资大于3000的
 select deptno,max(sal) from emp where sal>3000 group by deptno;
 ```
 
-```
+```mysql
 //where用不了，找出每个部门平均薪资高于2500的
 select deptno,avg(sal) from emp group by deptno
 									having avg(sal)>2500;
@@ -461,7 +462,7 @@ select deptno,avg(sal) from emp group by deptno
 
 **格式**
 
-```
+```mysql
 select		...
 from		...
 where		...
@@ -486,7 +487,7 @@ select查询出来，
 
 最后排序输出
 
-```
+```mysql
 //找出每个岗位平均薪资，
 //要求显示平均薪资大于1500，除manager岗位以外，按平均薪资降序排
 select job,avg(sal) as avgsal from emp where job <> 'manager'
@@ -497,7 +498,7 @@ select job,avg(sal) as avgsal from emp where job <> 'manager'
 
 `distinct`，只能用在所有字段的最前方
 
-```
+```mysql
 select distinct job from emp;
 //联合去重
 select distinct job,deptno from emp;
@@ -516,13 +517,13 @@ select count(distinct job) from emp;
 
 笛卡尔积现象：两张表进行连接查询，没有任何条件限制时，查询结果条数为这两张表条数的乘积
 
-```
+```mysql
 select ename,dname from emp,dept;
 ```
 
 加条件限制：
 
-```
+```mysql
 //SQL92
 //查询次数没有减少
 select ename,dname from emp,dept where emp.deptno = dept.deptno;
@@ -543,13 +544,13 @@ select e.ename,d.dname from emp e,dept d where e.deptno = d.deptno;
 
  `格式`（`inner`可省略）
 
-```
+```mysql
 select ... from a inner join b on a和b的连接条件 where 筛选条件
 ```
 
 `等值连接`，连接条件为等量关系
 
-```
+```mysql
 //显示员工名和部门名
 select  e.ename,d.dname 
 from emp e join dept d on e.deptno = d.deptno;
@@ -557,7 +558,7 @@ from emp e join dept d on e.deptno = d.deptno;
 
 `非等值连接`
 
-```
+```mysql
 //显示员工名、工资、工资等级
 select e.ename,e.sal,s.grade 
 from emp e join salgrade s on e.sal between s.losal and s.hisal;
@@ -565,7 +566,7 @@ from emp e join salgrade s on e.sal between s.losal and s.hisal;
 
 `自连接`
 
-```
+```mysql
 //显示员工名、其领导名
 select a.ename '员工名',b.ename '领导名'
 from emp a join emp b on a.mgr = b.empno;
@@ -578,14 +579,14 @@ from emp a join emp b on a.mgr = b.empno;
 
 `右（外）连接`，把`join`右边的表当主表，把这张表的数据全部查询，左边顺带查询
 
-```
+```mysql
 select e.ename,d.dname
 from emp e right join dept d on e.deptno = d.deptno;
 ```
 
 `左（外）连接`，把`join`左边的表当主表
 
-```
+```mysql
 select e.ename,d.dname
 from dept d left join emp e on e.deptno = d.deptno;
 ```
@@ -596,7 +597,7 @@ from dept d left join emp e on e.deptno = d.deptno;
 
 外连接查询结果条数 >= 内连接查询结果条数
 
-```
+```mysql
 //显示员工名、其领导名
 select a.ename '员工名',b.ename '领导名'
 from emp a left join emp b on a.mgr = b.empno;
@@ -607,7 +608,7 @@ from emp a left join emp b on a.mgr = b.empno;
 
 `格式`
 
-```
+```mysql
 select ... from a join b on a和b的连接条件
 				  join c on a和c的连接条件
 				  join d on a和d的连接条件
@@ -615,7 +616,7 @@ select ... from a join b on a和b的连接条件
 
 内外连接可以混合
 
-```
+```mysql
 //显示员工名、部门名、薪资、薪资等级、领导名
 select e.ename,d.dname,e.sal,s.grade,l.ename
 from emp e join dept d on e.deptno = d.deptno
@@ -627,7 +628,7 @@ from emp e join dept d on e.deptno = d.deptno
 
 `select`语句中嵌套`select`语句
 
-```
+```mysql
 select 	..(select).
 from	..(select).
 where	..(select).
@@ -635,7 +636,7 @@ where	..(select).
 
 `where`子句中的子查询
 
-```
+```mysql
 //找出比最低工资高的员工名、工资
 select min(sal) from emp;
 select ename,sal from emp where sal > 800;
@@ -646,7 +647,7 @@ select ename,sal from emp
 
 `from`子句中的子查询，可以把子查询的查询结果当做一张临时表
 
-```
+```mysql
 //找出每个岗位平均工资的薪资等级
 select job,avg(sal) avgsal from emp group by job;
 select t.job,t.avgsal,s.grade 
@@ -659,7 +660,7 @@ select t.*,s.grade
 
 `select`后出现的子查询（了解）
 
-```
+```mysql
 //找出员工名、部门
 select e.ename,e.deptno,
 (select d.dname from dept d where e.deptno = d.deptno) as dname
@@ -671,13 +672,13 @@ from emp e;
 
 **合并查询结果集**
 
-```
+```mysql
 //查询结果是manager和salesman的员工
 select ename,job from emp where job = 'manager' or job = 'salesman';
 select ename,job from emp where job in ('manager','salesman');
 ```
 
-```
+```mysql
 select ename,job from emp where job = 'manager' union
 select ename,job from emp where job = 'salesman';
 ```
@@ -690,12 +691,12 @@ select ename,job from emp where job = 'salesman';
 
 **把查询结果集的一部分取出来**
 
-```
+```mysql
 limit startIndex,length//从0开始，0 1 2 3 4 5 ...
 limit 5//前5个
 ```
 
-```
+```mysql
 select ename,sal from emp order by sal desc limit 5;
 select ename,sal from emp order by sal desc limit 2,5;
 ```
@@ -708,7 +709,7 @@ select ename,sal from emp order by sal desc limit 2,5;
 
 格式：
 
-```
+```mysql
 select		... 
 from		... 
 where		... 
@@ -730,7 +731,7 @@ from先通过这个地方查，where在经过这个条件筛选，group by分组
 
 **格式：**
 
-```
+```mysql
 create table 表名(字段名1 数据类型,字段名2 数据类型,字段名3 数据类型);
 ```
 
@@ -845,7 +846,7 @@ create table t_student(
 
 等于按字段名排列顺序写所有值
 
-```
+```mysql
 insert into t_student values(2,'lisi','f',22,'lisi@123.com');
 ```
 
@@ -944,13 +945,13 @@ insert into t_user values(2,'zhangsan',now(),now());
 update 表名 set 字段名1=值1,字段名2=值2,字段名3=值3 where 条件;
 ```
 
-```
+```mysql
 update t_user set name = 'jack',birth = '2000-10-11' where id = 2;
 ```
 
 **没有条件限制时所有数据全部更新**
 
-```
+```mysql
 update t_user set name = 'abc';
 ```
 
@@ -996,7 +997,7 @@ truncate table 表名;
 
 **主键约束：primary key（pk）**
 
-**检查约束：check（MySQL不支持，oracel支持）**
+**检查约束：check（MySQL不支持，oracle支持）**
 
 #### 5.1 非空约束
 
@@ -1164,15 +1165,12 @@ select * from t_vip;
 
 `foreign key`，简称`FK`，外键约束、外键字段、外键值
 
-**子表中的字段引用附表中的字段，子表字段被约束，保证数据安全，子表字段值只能来自父表字段值**
+**子表中的字段引用父表中的字段，子表字段被约束，保证数据安全，子表字段值只能来自父表字段值**
 
 **建表先建父表，删表先删子表**
 
 ```mysql
 foreign key(子表字段) references 父表名(父表字段)
-```
-
-```
 ```
 
 **子表中外键引用父表的字段，父表的字段    不一定为主键，但至少有unique约束**
@@ -1210,9 +1208,8 @@ source D:\\StudySoftware\\Eclipse\\w2\\javaStudy\\text\\MySQL\\t_student.sql;
 ```
 
 ```mysql
-insert into t_student(name,cno) values('t2',100);
 //报错
-insert into t_student(name,cno) values('t2',102);
+insert into t_student(name,cno) values('t5',102);
 ```
 
 ### 6 存储引擎（了解）
