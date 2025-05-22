@@ -4,8 +4,15 @@
 select max(sal) from emp group by deptno;
 select ename,deptno,sal from emp where sal in (select max(sal) from emp group by deptno) ;
 
-select e.ename,d.dname,e.sal from emp e join dept d on e.deptno = d.deptno where e.sal in (select max(sal) from emp group by deptno) ;
+select e.ename,d.dname,e.sal from emp e join dept d on e.deptno = d.deptno where e.sal in (select max(sal) from emp group by deptno);
 ```
+
+```mysql
+select deptno,max(sal) maxsal from emp group by deptno;
+select e.ename,e.deptno,t.maxsal from emp e join (select deptno,max(sal) maxsal from emp group by deptno) t on e.deptno=t.deptno and e.sal=t.maxsal;
+```
+
+
 
 ##### 2、哪些人的薪水在部门的平均薪水之上
 
@@ -25,12 +32,31 @@ select deptno,avg(sal) avgsal from emp group by deptno;
 select t.deptno,s.grade from (select deptno,avg(sal) avgsal from emp group by deptno) t join salgrade s on t.avgsal between s.losal and s.hisal;
 ```
 
+```mysql
+select e.ename,e.deptno,s.grade from emp e join salgrade s on e.sal between s.losal and hisal;
+
+select e.deptno,avg(s.grade) from emp e join salgrade s on e.sal between s.losal and hisal group by e.deptno;
+```
+
 
 
 ##### 4、不准用组函数（Max ），取得最高薪水
 
 ```mysql
 select sal from emp group by sal order by sal desc limit 0,1;
+```
+
+```mysql
+select sal from emp group by sal order by sal desc limit 1;
+```
+
+
+
+```mysql
+//表的自连接
+select distinct a.sal from emp a join emp b on a.sal<b.sal;
+
+select sal from emp where sal not in(select distinct a.sal from emp a join emp b on a.sal<b.sal);
 ```
 
 
@@ -43,6 +69,17 @@ select deptno,avg(sal) avgsal from emp group by deptno;
 select deptno from (select deptno,avg(sal) avgsal from emp group by deptno) t order by avgsal desc limit 0,1;
 ```
 
+```mysql
+select deptno,avg(sal) avgsal from emp group by deptno order by avgsal desc limit 1;
+```
+
+```mysql
+select avg(sal) avgsal from emp group by deptno;
+select max(avgsal) from (select avg(sal) avgsal from emp group by deptno) t;
+
+select deptno,avg(sal) avgsal from emp group by deptno having avgsal=(select max(avgsal) from (select avg(sal) avgsal from emp group by deptno) t);
+```
+
 
 
 ##### 6、取得平均薪水最高的部门的部门名称
@@ -53,18 +90,27 @@ select deptno,avg(sal) avgsal from emp group by deptno;
 select d.dname from dept d join (select deptno,avg(sal) avgsal from emp group by deptno) t on d.deptno=t.deptno order by avgsal desc limit 0,1;
 ```
 
-
+```mysql
+select d.dname,avg(e.sal) avgsal from emp e join dept d on e.deptno=d.deptno group by d.dname order by avgsal desc limit 1;
+```
 
 
 
 ##### 7、求平均薪水的等级最低的部门的部门名称
 
 ```mysql
-```
-
 select deptno,avg(sal) avgsal from emp group by deptno;
 
 select d.dname from dept d join (select deptno,avg(sal) avgsal from emp group by deptno) t on d.deptno=t.deptno order by avgsal asc limit 0,1;
+```
+
+```mysql
+select avg(sal) avgsal from emp group by deptno order by avgsal asc limit 1;
+
+select grade from salgrade where (select avg(sal) avgsal from emp group by deptno order by avgsal asc limit 1) between losal and hisal;
+```
+
+
 
 ##### 8、取得比普通员工(员工代码没有在 mgr 字段上出现的) 的最高薪水还要高的领导人姓名
 
