@@ -108,6 +108,10 @@ select d.dname from dept d join (select deptno,avg(sal) avgsal from emp group by
 select avg(sal) avgsal from emp group by deptno order by avgsal asc limit 1;
 
 select grade from salgrade where (select avg(sal) avgsal from emp group by deptno order by avgsal asc limit 1) between losal and hisal;
+
+select d.dname,avg(sal) avgsal from emp e join dept d on e.deptno=d.deptno group by dname;
+
+select t.*,s.grade from (select d.dname,avg(sal) avgsal from emp e join dept d on e.deptno=d.deptno group by dname) t join salgrade s on t.avgsal between s.losal and s.hisal where s.grade=(select grade from salgrade where (select avg(sal) avgsal from emp group by deptno order by avgsal asc limit 1) between losal and hisal);
 ```
 
 
@@ -115,6 +119,15 @@ select grade from salgrade where (select avg(sal) avgsal from emp group by deptn
 ##### 8、取得比普通员工(员工代码没有在 mgr 字段上出现的) 的最高薪水还要高的领导人姓名
 
 ```mysql
+
+```
+
+```mysql
+select distinct mgr from emp where mgr is not null;
+//in后面的值不能为null
+select max(sal) from emp where empno not in (select distinct mgr from emp where mgr is not null);
+
+select ename,sal from emp where sal>(select max(sal) from emp where empno not in (select distinct mgr from emp where mgr is not null));
 ```
 
 
@@ -122,7 +135,7 @@ select grade from salgrade where (select avg(sal) avgsal from emp group by deptn
 ##### 9、取得薪水最高的前五名员工
 
 ```mysql
-select ename from emp order by sal desc limit 0,5;
+select ename from emp order by sal desc limit 5;
 ```
 
 
@@ -138,7 +151,8 @@ select ename from emp order by sal desc limit 5,5;
 ##### 11、取得最后入职的 5 名员工
 
 ```mysql
-select ename from emp order by hiredate desc limit 0,5;
+//日期可以升降序排
+select ename from emp order by hiredate desc limit 5;
 ```
 
 
@@ -166,6 +180,22 @@ SC（SNO，CNO，SCGRADE）代表（学号，课号，成绩）
 3，即学过 1 号课程又学过 2 号课所有学生的姓名。
 
 ```mysql
+1.
+select s.sname from s join sc on s.sno=sc.sno join c on sc.cno=c.cno where c.cteacher='黎明';
+
+select s.sname from (select s.sname from s join sc on s.sno=sc.sno join c on sc.cno=c.cno where c.cteacher='黎明') t where s.sname not in t.sname;
+2.
+select sc.* from sc where sc.scgrade<60;
+
+select sc.sno,count(sc.cno) num from sc where sc.scgrade<60 group by sc.sno having num>1;
+
+select s.sname from s join (select sc.sno,count(sc.cno) num from sc where sc.scgrade<60 group by sc.sno having num>1) t on s.sno=t.sno;
+3.
+
+```
+
+```mysql
+JDBC
 ```
 
 
@@ -234,6 +264,10 @@ select job,count(*) num from emp group by job;
 select e.job,t.num from emp e join (select job,count(*) num from emp group by job) t on e.job=t.job group by e.job having min(e.sal)>1500;
 ```
 
+```mysql
+select job,count(*) from emp group by job having min(sal)>1500;
+```
+
 
 
 ##### 21、列出在部门"SALES"< 销售部> 工作的员工的姓名, 假定不知道销售部的部门编号.
@@ -278,7 +312,12 @@ select sal from emp where deptno=30;
 select e.ename,e.sal from emp e join (select sal from emp where deptno=30) t on e.sal=t.sal where e.deptno<>30;
 ```
 
-
+```mysql
+select e.ename,e.sal 
+from emp e 
+where sal in (select sal from emp where deptno=30)
+and deptno<>30;
+```
 
 
 
@@ -295,6 +334,15 @@ select e.ename,e.sal,d.dname from emp e join dept d on e.deptno=d.deptno where e
 ##### 26、列出在每个部门工作的员工数量, 平均工资和平均服务期限
 
 ```mysql
+select deptno,count(*),avg(sal) from emp group by deptno;
+```
+
+```mysql
+select d.dname,count(e.ename) num,ifnull(avg(e.sal),0) sal,ifnull(avg(timestampdiff(YEAR,hiredate,now())),0) time
+from emp e
+right join dept d
+on e.deptno=d.deptno
+group by d.dname;
 ```
 
 
@@ -310,9 +358,17 @@ select e.ename,d.dname,e.sal from emp e join dept d on e.deptno=d.deptno;
 ##### 28、列出所有部门的详细信息和人数
 
 ```mysql
-select deptno,count(deptno) num from emp group by deptno;
+select deptno,count(*) num from emp group by deptno;
 
-select d.*,t.num from dept d join (select deptno,count(deptno) num from emp group by deptno) t on d.deptno=t.deptno;
+select d.*,t.num from dept d join (select deptno,count(*) num from emp group by deptno) t on d.deptno=t.deptno;
+```
+
+```mysql
+select d.*,count(e.ename)
+from emp e
+right join dept d
+on e.deptno=d.deptno
+group by d.deptno,d.dname,d.loc;
 ```
 
 
@@ -325,6 +381,15 @@ select job,min(sal) minsal from emp group by job;
 select t.job,t.minsal,e.ename from emp e join (select job,min(sal) minsal from emp group by job) t on e.sal=t.minsal;
 ```
 
+```mysql
+select t.job,t.minsal,e.ename 
+from emp e 
+join (select job,min(sal) minsal from emp group by job) t 
+on e.job=t.job and e.sal=t.minsal;
+```
+
+
+
 
 
 ##### 30、列出各个部门的 MANAGER( 领导) 的最低薪金
@@ -333,6 +398,13 @@ select t.job,t.minsal,e.ename from emp e join (select job,min(sal) minsal from e
 select ename,sal,deptno from emp where job = 'MANAGER';
 
 select deptno,min(sal) from (select ename,sal,deptno from emp where job = 'MANAGER') t group by deptno;
+```
+
+```mysql
+select deptno,min(sal)
+from emp
+where job='MANAGER'
+group by deptno;
 ```
 
 
@@ -361,9 +433,20 @@ select e.ename,t.ename from emp e join emp t on e.mgr=t.empno where t.sal>3000;
 select sum(e.sal) sumsal,count(*) num from emp e join dept d on e.deptno=d.deptno where d.dname like '%S%';
 ```
 
+```mysql
+select d.deptno,d.dname,d.loc,count(e.ename),ifnull(sum(e.sal),0)
+from emp e
+right join dept d
+on e.deptno=d.deptno
+where d.dname like '%S%'
+group by d.deptno,d.dname,d.loc;
+```
+
 
 
 ##### 34、给任职日期超过 30 年的员工加薪 10%.
 
 ```mysql
+update emp set sal=sal*1.1 
+where timestampdiff(YEAR,hiredate,now())>40;
 ```
